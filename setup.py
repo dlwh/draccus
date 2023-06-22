@@ -6,7 +6,7 @@ import re
 
 with open("README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
-packages = setuptools.find_namespace_packages(include=["pyrallis*"])
+packages = setuptools.find_namespace_packages(include=["obligate*"])
 print("PACKAGES FOUND:", packages)
 print(sys.version_info)
 
@@ -19,13 +19,13 @@ def find_version(*file_paths: str) -> str:
     raise RuntimeError("Unable to find version string.")
 
 setuptools.setup(
-    name="pyrallis",
-    version=find_version("pyrallis", "__init__.py"),
+    name="obligate",
+    version=find_version("obligate", "__init__.py"),
     author="Elad Richardson",
     description="A framework for simple dataclass-based configurations.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://eladrich.github.io/pyrallis/",
+    url="https://github.com/dlwh/obligate",
     packages=packages,
     package_data={"pyrallis": ["py.typed"]},
     classifiers=[

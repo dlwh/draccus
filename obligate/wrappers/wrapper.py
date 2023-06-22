@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Generic, Optional, List
 
-from pyrallis.utils import T
+from obligate.utils import T
 
 
 class Wrapper(Generic[T], ABC):

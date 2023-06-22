@@ -2,9 +2,9 @@
 
 Just register a new encoder for a given type like so:
 
-import pyrallis
+import obligate
 import numpy as np
-@pyrallis.encode.register
+@obligate.encode.register
 def encode_ndarray(obj: np.ndarray) -> str:
     return obj.tostring()
 """
@@ -74,7 +74,7 @@ def encode(obj: Any) -> Any:
         elif obj is None:
             return None
         else:
-            raise Exception(f'No parser for object {obj} of type {type(obj)}, consider using pyrallis.encode.register')
+            raise Exception(f'No parser for object {obj} of type {type(obj)}, consider using obligate.encode.register')
     except Exception as e:
         logger.debug(f"Cannot encode object {obj}: {e}")
         raise e

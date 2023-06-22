@@ -13,11 +13,11 @@ from logging import getLogger
 from pathlib import Path
 from typing import Dict, List, Sequence, Text, Type, Union, TypeVar, Generic, Optional
 
-from pyrallis import utils, cfgparsing
-from pyrallis.help_formatter import SimpleHelpFormatter
-from pyrallis.parsers import decoding
-from pyrallis.utils import Dataclass, PyrallisException
-from pyrallis.wrappers import DataclassWrapper
+from obligate import utils, cfgparsing
+from obligate.help_formatter import SimpleHelpFormatter
+from obligate.parsers import decoding
+from obligate.utils import Dataclass, PyrallisException
+from obligate.wrappers import DataclassWrapper
 
 logger = getLogger(__name__)
 
@@ -47,7 +47,7 @@ class ArgumentParser(Generic[T], argparse.ArgumentParser):
         self.config_class = config_class
 
         self._assert_no_conflicts()
-        self.add_argument(f'--{utils.CONFIG_ARG}', type=str, help='Path for a config file to parse with pyrallis')
+        self.add_argument(f'--{utils.CONFIG_ARG}', type=str, help='Path for a config file to parse with obligate')
         self.set_dataclass(config_class)
 
     def set_dataclass(
@@ -76,7 +76,7 @@ class ArgumentParser(Generic[T], argparse.ArgumentParser):
     def _assert_no_conflicts(self):
         """ Checks for a field name that conflicts with utils.CONFIG_ARG"""
         if utils.CONFIG_ARG in [field.name for field in dataclasses.fields(self.config_class)]:
-            raise PyrallisException(f'{utils.CONFIG_ARG} is a reserved word for pyrallis')
+            raise PyrallisException(f'{utils.CONFIG_ARG} is a reserved word for obligate')
 
     def parse_args(self, args=None, namespace=None) -> T:
         return super().parse_args(args, namespace)

@@ -1,44 +1,63 @@
 <p align="center"><img src="https://raw.githubusercontent.com/eladrich/pyrallis/master/docs/pyrallis_logo.png" alt="logo" width="70%" /></p>
 
+    <!--
 <p align="center">
-    <a href="https://badge.fury.io/py/pyrallis"><img src="https://badge.fury.io/py/pyrallis.svg" alt="PyPI version" height="18"></a>
+<a href="https://badge.fury.io/py/obligate"><img src="https://badge.fury.io/py/pyrallis.svg" alt="PyPI version" height="18"></a>
     <a href="https://github.com/eladrich/pyrallis/actions/workflows/pytest.yml"><img src="https://github.com/eladrich/pyrallis/actions/workflows/pytest.yml/badge.svg" alt="PyTest" height="18"></a>
     <a href="https://pepy.tech/project/pyrallis"><img src="https://pepy.tech/badge/pyrallis" alt="Downloads" height="18"></a>
     <a href="#contributors-"><img src="https://img.shields.io/badge/all_contributors-2-orange.svg" alt="All Contributors" height="18"></a>
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" height="18"></a>
 </p>
 
+ -->
 
-# Pyrallis - Simple Configuration with Dataclasses
+# Obligate - Slightly Less Simple Configuration with Dataclasses
 
-> Pyrausta (also called pyrallis (πυραλλίς), pyragones) is a mythological insect-sized dragon from Cyprus.
+> Obligate (adj): Indispensable; essential; necessary; obligatory; mandatory; unavoidably invoked.
+ 
+Obligate is a fork of the excellent [Pyrallis](https://github.com/eladrich/pyrallis) library, but with
+a few changes to make it more suitable for my use cases. The main changes are:
 
-`Pyrallis` is a simple library, derived from `simple-parsing` and inspired by `Hydra`, for automagically creating project configuration from a dataclass.
+* WIP: Support for subtyping configs (that is, choosing between different configs based on a parameter)
+* WIP: Support for including config files in config files
+* WIP: Better support for type parameters
+* Couple of bug fixes
+
+I swear I didn't want to fork it, but the Pyrallis devs (understandably) didn't want to merge some of 
+these.
 
 
 <p align="center"><img src="https://github.com/eladrich/pyrallis/raw/master/docs/argparse2pyrallis.gif" alt="GIF" width="100%" /></p>
 
-## Why `pyrallis`?
+## Why `obligate`?
 
-With `pyrallis` your configuration is linked directly to your pre-defined `dataclass`, allowing you to easily create different configuration structures, including nested ones, using an object-oriented design. The parsed arguments are used to initialize your `dataclass`, giving you the typing hints and automatic code completion of a full `dataclass` object.
+We support everything in Pyrallis (see their examples), but also support subtyping and including config files in config files.
+We still try to maintain their simple, clean
+
+With `obligate` your configuration is linked directly to your pre-defined `dataclass`, allowing you to easily create different configuration structures, including nested ones, using an object-oriented design. The parsed arguments are used to initialize your `dataclass`, giving you the typing hints and automatic code completion of a full `dataclass` object.
 
 
-## My First Pyrallis Example 👶
+# Everything below here is from Pyrallis. I'll update it eventually.
+
+## My First Obligate Example
+
+
 There are several key features to pyrallis but at its core pyrallis simply allows defining an argument parser using a dataclass.
 
 ```python 
 from dataclasses import dataclass
-import pyrallis
+import obligate
 
 
 @dataclass
 class TrainConfig:
     """ Training config for Machine Learning """
-    workers: int = 8 # The number of workers for training
-    exp_name: str = 'default_exp' # The experiment name
+    workers: int = 8  # The number of workers for training
+    exp_name: str = 'default_exp'  # The experiment name
+
 
 def main():
-    cfg = pyrallis.parse(config_class=TrainConfig)
+    cfg = obligate.parse(config_class=TrainConfig)
     print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 
 ```
@@ -79,7 +98,7 @@ Creation of an argparse configuration is really simple, just use `pyrallis.parse
 
 ```python
 from dataclasses import dataclass, field
-import pyrallis
+import obligate
 
 
 @dataclass
@@ -92,7 +111,7 @@ class TrainConfig:
 
 
 def main():
-    cfg = pyrallis.parse(config_class=TrainConfig)
+    cfg = obligate.parse(config_class=TrainConfig)
     print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 
 
@@ -145,11 +164,12 @@ We will use this syntax for the rest of our tutorial.
 
 ### 🐲 3/5 Better Configs Using Inherent `dataclass` Features 🐲
 When using a dataclass we can add additional functionality using existing `dataclass` features, such as the `post_init` mechanism or `@properties` :grin:
+
 ```python
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
-import pyrallis
+import obligate
 
 
 @dataclass
@@ -174,7 +194,7 @@ class TrainConfig:
         return self.exp_root / self.exp_name
 
 
-@pyrallis.wrap()
+@obligate.wrap()
 def main(cfg: TrainConfig):
     print(f'Training {cfg.exp_name}...')
     print(f'\tUsing {cfg.workers} workers and {cfg.eval_workers} evaluation workers')
@@ -339,9 +359,11 @@ Well, you would have to create a dedicated factory function that regenerates the
 worker_inds: List[int] = field(default_factory=lambda : [1,2,3])
 ```
 Kind of annoying and could be confusing for a new guest reading your code :confused: Now, while this isn't really related to parsing/configuration we decided it could be nice to offer a sugar-syntax for such cases as part of `pyrallis`
+
 ```python
-from pyrallis import field
-worker_inds: List[int] = field(default=[1,2,3], is_mutable=True)
+from obligate import field
+
+worker_inds: List[int] = field(default=[1, 2, 3], is_mutable=True)
 ```
 The `pyrallis.field` behaves like the regular `dataclasses.field` with an additional `is_mutable` flag. When toggled, the `default_factory` is created automatically, offering the same functionally with a more reader-friendly syntax.
 

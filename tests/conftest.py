@@ -6,8 +6,8 @@ import pytest
 
 from .testutils import TestSetup
 
-# from pyrallis import choice
-# from pyrallis.helpers import Serializable
+# from obligate import choice
+# from obligate.helpers import Serializable
 
 # List of simple attributes to use in tests:
 simple_arguments: List[Tuple[Type, Any, Any]] = [

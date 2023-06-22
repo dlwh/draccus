@@ -4,7 +4,7 @@ from argparse import ONE_OR_MORE, OPTIONAL, PARSER, REMAINDER, ZERO_OR_MORE
 from logging import getLogger
 from typing import Type
 
-from pyrallis.wrappers.field_metavar import get_metavar
+from obligate.wrappers.field_metavar import get_metavar
 
 logger = getLogger(__name__)
 

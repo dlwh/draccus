@@ -2,7 +2,7 @@ import functools
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
-from pyrallis.utils import (
+from obligate.utils import (
     get_type_arguments,
     is_optional,
     is_tuple,

@@ -17,8 +17,8 @@ from typing import (
 )
 
 import pytest
-import pyrallis
-from pyrallis import ParsingError
+import obligate
+from obligate import ParsingError
 
 
 xfail = pytest.mark.xfail
@@ -107,7 +107,7 @@ class TestSetup:
         """
         if arguments is not None:
             arguments = shlex.split(arguments)
-        cfg = pyrallis.parse(config_class=cls, args=arguments)
+        cfg = obligate.parse(config_class=cls, args=arguments)
         return cfg
 
     @classmethod

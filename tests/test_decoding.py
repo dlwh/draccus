@@ -4,7 +4,7 @@ from enum import Enum, auto
 import yaml
 import json
 
-from pyrallis.utils import PyrallisException
+from obligate.utils import PyrallisException
 from .testutils import *
 
 
@@ -27,7 +27,7 @@ def test_encode_something(simple_attribute):
     b.l.append((expected_value, expected_value))
     b.t.update({"hey": None, "hey2": expected_value})
 
-    assert pyrallis.decode(SomeClass, pyrallis.encode(b)) == b
+    assert obligate.decode(SomeClass, obligate.encode(b)) == b
 
 
 @parametrize('config_type', ['', 'yaml', 'json', 'toml'])
@@ -35,7 +35,7 @@ def test_dump_load(simple_attribute, config_type, tmp_path):
     some_type, _, expected_value = simple_attribute
 
     if config_type != '':
-        pyrallis.set_config_type(config_type)
+        obligate.set_config_type(config_type)
 
     @dataclass
     class SomeClass:
@@ -44,19 +44,19 @@ def test_dump_load(simple_attribute, config_type, tmp_path):
     b = SomeClass(val=expected_value)
 
     tmp_file = tmp_path / 'config'
-    pyrallis.dump(b, tmp_file.open('w'))
+    obligate.dump(b, tmp_file.open('w'))
 
-    new_b = pyrallis.parse(config_class=SomeClass, config_path=tmp_file, args="")
+    new_b = obligate.parse(config_class=SomeClass, config_path=tmp_file, args="")
     assert new_b == b
 
     arguments = shlex.split(f"--config_path {tmp_file}")
-    new_b = pyrallis.parse(config_class=SomeClass, args=arguments)
+    new_b = obligate.parse(config_class=SomeClass, args=arguments)
     assert new_b == b
 
-    new_b = pyrallis.parse(config_class=SomeClass, args="")
+    new_b = obligate.parse(config_class=SomeClass, args="")
     assert new_b != b
 
-    pyrallis.set_config_type('yaml')
+    obligate.set_config_type('yaml')
 
 
 def test_dump_load_context():
@@ -66,17 +66,17 @@ def test_dump_load_context():
 
     b = SomeClass()
 
-    yaml_str = pyrallis.dump(b)
-    assert yaml_str == yaml.dump(pyrallis.encode(b))
+    yaml_str = obligate.dump(b)
+    assert yaml_str == yaml.dump(obligate.encode(b))
 
-    with pyrallis.config_type('json'):
-        json_str = pyrallis.dump(b)
-        assert json_str == json.dumps(pyrallis.encode(b))
+    with obligate.config_type('json'):
+        json_str = obligate.dump(b)
+        assert json_str == json.dumps(obligate.encode(b))
 
-    yaml_str = pyrallis.dump(b)
-    assert yaml_str == yaml.dump(pyrallis.encode(b))
+    yaml_str = obligate.dump(b)
+    assert yaml_str == yaml.dump(obligate.encode(b))
 
-    assert pyrallis.get_config_type() is pyrallis.ConfigType.YAML
+    assert obligate.get_config_type() is obligate.ConfigType.YAML
 
 
 def test_dump_load_dicts(simple_attribute, tmp_path):
@@ -94,12 +94,12 @@ def test_dump_load_dicts(simple_attribute, tmp_path):
     b.t.update({"hey": None, "hey2": expected_value})
 
     tmp_file = tmp_path / 'config'
-    pyrallis.dump(b, tmp_file.open('w'))
+    obligate.dump(b, tmp_file.open('w'))
 
-    new_b = pyrallis.parse(config_class=SomeClass, config_path=tmp_file, args="")
+    new_b = obligate.parse(config_class=SomeClass, config_path=tmp_file, args="")
     assert new_b == b
     arguments = shlex.split(f"--config_path {tmp_file}")
-    new_b = pyrallis.parse(config_class=SomeClass, args=arguments)
+    new_b = obligate.parse(config_class=SomeClass, args=arguments)
     assert new_b == b
 
 
@@ -110,9 +110,9 @@ def test_dump_load_enum(tmp_path):
 
     b = SomeClass()
     tmp_file = tmp_path / 'config.yaml'
-    pyrallis.dump(b, tmp_file.open('w'))
+    obligate.dump(b, tmp_file.open('w'))
 
-    new_b = pyrallis.parse(config_class=SomeClass, config_path=tmp_file, args="")
+    new_b = obligate.parse(config_class=SomeClass, config_path=tmp_file, args="")
     assert new_b == b
 
 
@@ -122,7 +122,7 @@ def test_reserved_config_word():
         config_path: str = ""
 
     with raises(PyrallisException):
-        pyrallis.parse(MainClass)
+        obligate.parse(MainClass)
 
 
 def test_super_nesting():
@@ -134,6 +134,6 @@ def test_super_nesting():
 
     c = Complicated()
     c.x = [[[{0: (2, 1.23, "bob", [1.2, 1.3])}]]]
-    assert pyrallis.decode(Complicated, pyrallis.encode(c)) == c
+    assert obligate.decode(Complicated, obligate.encode(c)) == c
 #
 #

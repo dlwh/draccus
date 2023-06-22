@@ -4,7 +4,7 @@ from dataclasses import _MISSING_TYPE
 from logging import getLogger
 from typing import Dict, List, Optional, Type, Union, cast
 
-from pyrallis.utils import Dataclass
+from obligate.utils import Dataclass
 from . import docstring
 from .field_wrapper import FieldWrapper
 from .wrapper import Wrapper
@@ -88,7 +88,7 @@ class DataclassWrapper(Wrapper[Dataclass]):
         )
 
     def add_arguments(self, parser: argparse.ArgumentParser):
-        from pyrallis.argparsing import ArgumentParser
+        from obligate.argparsing import ArgumentParser
 
         parser = cast(ArgumentParser, parser)
         option_fields = [field for field in self.fields if field.arg_options]

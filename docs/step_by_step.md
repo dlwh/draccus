@@ -8,7 +8,7 @@ Creation of an argparse configuration is really simple, just use `pyrallis.parse
 
 ```python title="train_model.py"  linenums="1"
 from dataclasses import dataclass, field
-import pyrallis
+import obligate
 
 
 @dataclass
@@ -21,7 +21,7 @@ class TrainConfig:
 
 
 def main():
-    cfg = pyrallis.parse(config_class=TrainConfig)
+    cfg = obligate.parse(config_class=TrainConfig)
     print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 
 
@@ -74,11 +74,12 @@ We will use this syntax for the rest of our tutorial.
 
 ## Using Inherent `dataclass` Features
 When using a dataclass we can add additional functionality using existing `dataclass` features, such as the `post_init` mechanism or `@properties` :grin:
+
 ```python
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
-import pyrallis
+import obligate
 
 
 @dataclass
@@ -103,7 +104,7 @@ class TrainConfig:
         return self.exp_root / self.exp_name
 
 
-@pyrallis.wrap()
+@obligate.wrap()
 def main(cfg: TrainConfig):
     print(f'Training {cfg.exp_name}...')
     print(f'\tUsing {cfg.workers} workers and {cfg.eval_workers} evaluation workers')

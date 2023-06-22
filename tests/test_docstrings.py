@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
 
-from pyrallis.wrappers.docstring import get_attribute_docstring
+from obligate.wrappers.docstring import get_attribute_docstring
 from .testutils import TestSetup
 
 

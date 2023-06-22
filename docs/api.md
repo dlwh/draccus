@@ -36,18 +36,21 @@ An initialized dataclass of type `config_class`.
 > Example:
 
 A small working example would look like that
+
 ```python title="train_model.py"  linenums="1"
 from dataclasses import dataclass
-import pyrallis
+import obligate
+
 
 @dataclass
 class TrainConfig:
     """ Training config for Machine Learning """
-    workers: int = 8 # The number of workers for training
-    exp_name: str = 'default_exp' # The experiment name
+    workers: int = 8  # The number of workers for training
+    exp_name: str = 'default_exp'  # The experiment name
+
 
 def main():
-    cfg = pyrallis.parse(config_class=TrainConfig)
+    cfg = obligate.parse(config_class=TrainConfig)
     print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 ```
 The arguments can then be specified using command-line arguments, a `yaml` configuration file, or both
@@ -201,9 +204,9 @@ Say we want to add an option to decode a numpy array into pyrallis.
 
 ```python
 import numpy as np
-import pyrallis
+import obligate
 
-pyrallis.decode.register(np.ndarray,np.asarray)
+obligate.decode.register(np.ndarray, np.asarray)
 ```
 
 The register function can also be used as a wrapper
@@ -306,9 +309,9 @@ Say we want to add an option to encode a numpy array into pyrallis.
 
 ```python
 import numpy as np
-import pyrallis
+import obligate
 
-pyrallis.encode.register(np.ndarray, lambda x: x.tolist())
+obligate.encode.register(np.ndarray, lambda x: x.tolist())
 ```
 
 The register function can also be used as a wrapper
@@ -468,21 +471,24 @@ with pyrallis.config_type('json'):
 > Example
 
 ```python
-import pyrallis
-pyrallis.set_config_type('json')
+import obligate
+
+obligate.set_config_type('json')
+
 
 @dataclass
 class TrainConfig:
     """ Training config for Machine Learning """
-    workers: int = 8 # The number of workers for training
-    exp_name: str = 'default_exp' # The experiment name
+    workers: int = 8  # The number of workers for training
+    exp_name: str = 'default_exp'  # The experiment name
 
-@pyrallis.wrap()
+
+@obligate.wrap()
 def main(cfg: TrainConfig):
-    pyrallis.dump(cfg)
-    
-    with pyrallis.config_type('yaml'):
-        pyrallis.dump(cfg)
+    obligate.dump(cfg)
+
+    with obligate.config_type('yaml'):
+        obligate.dump(cfg)
 ```
 
 ## Helper Functions
@@ -530,9 +536,11 @@ Well, you would have to create a dedicated factory function that regenerates the
 worker_inds: List[int] = field(default_factory=lambda : [1,2,3])
 ```
 Kind of annoying and could be confusing for a new guest reading your code :confused:. This is where `pyrallis.field` can be helpful
+
 ```python
-from pyrallis import field
-worker_inds: List[int] = field(default=[1,2,3], is_mutable=True)
+from obligate import field
+
+worker_inds: List[int] = field(default=[1, 2, 3], is_mutable=True)
 ```
 The `pyrallis.field` behaves like the regular `dataclasses.field` with an additional `is_mutable` flag. When toggled, the `default_factory` is created automatically, offering the same functionally with a more reader-friendly syntax.
 

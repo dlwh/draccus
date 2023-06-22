@@ -7,8 +7,8 @@ from functools import partial
 from logging import getLogger
 from typing import TypeVar, Any, Dict, Type, Callable, Optional, Union, List, Tuple, Set
 
-from pyrallis.parsers.registry_utils import RegistryFunc, withregistry
-from pyrallis.utils import (
+from obligate.parsers.registry_utils import RegistryFunc, withregistry
+from obligate.utils import (
     get_type_arguments,
     is_dict,
     is_list,
@@ -180,7 +180,7 @@ def get_decoding_fn(cls: Type[T]) -> Callable[[Any], T]:
         if bound is not None:
             return get_decoding_fn(bound)
 
-    raise Exception(f"No decoding function for type {cls}, consider using pyrallis.decode.register")
+    raise Exception(f"No decoding function for type {cls}, consider using obligate.decode.register")
 
     # Alternatively could have tried type as constructor, but could have a surprising behaviour
     # return try_constructor(t)

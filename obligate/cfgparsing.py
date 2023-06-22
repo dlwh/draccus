@@ -1,9 +1,9 @@
 from typing import Type, TypeVar
 
-from pyrallis import utils
-from pyrallis.options import Options
-from pyrallis.parsers.decoding import decode
-from pyrallis.parsers.encoding import encode
+from obligate import utils
+from obligate.options import Options
+from obligate.parsers.decoding import decode
+from obligate.parsers.encoding import encode
 
 Dataclass = TypeVar("Dataclass")
 

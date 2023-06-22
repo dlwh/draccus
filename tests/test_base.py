@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Type, Any
 
-import pyrallis
-from pyrallis import ParsingError
+import obligate
+from obligate import ParsingError
 from .testutils import parametrize, TestSetup, raises_missing_required_arg, raises
 
 
@@ -144,9 +144,9 @@ def test_parsing_twice():
     class Foo:
         a: int = 123
 
-    cfg = pyrallis.parse(config_class=Foo, args="")
+    cfg = obligate.parse(config_class=Foo, args="")
     assert cfg.a == 123
-    cfg = pyrallis.parse(config_class=Foo, args="--a 456".split())
+    cfg = obligate.parse(config_class=Foo, args="--a 456".split())
     assert cfg.a == 456
 
 
@@ -168,7 +168,7 @@ def test_using_a_Type_type():
             self.a = self.a_class()
 
     foo = Foo.setup("")
-    from pyrallis.utils import contains_dataclass_type_arg
+    from obligate.utils import contains_dataclass_type_arg
 
     assert not contains_dataclass_type_arg(Type[Base])
     assert foo.a_class() == Base()

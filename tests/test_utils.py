@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import *
 
-import pyrallis.utils as utils
+import obligate.utils as utils
 from .testutils import *
 
 

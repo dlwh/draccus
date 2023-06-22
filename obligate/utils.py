@@ -1,4 +1,4 @@
-"""Utility functions used in various parts of the pyrallis package."""
+"""Utility functions used in various parts of the obligate package."""
 import builtins
 import collections.abc as c_abc
 import dataclasses

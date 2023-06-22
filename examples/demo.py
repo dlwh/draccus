@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-import pyrallis
+import obligate
 
 
 # logging.basicConfig(level=logging.DEBUG)
@@ -44,12 +44,12 @@ class TrainConfig:
     compute: ComputeConfig = field(default_factory=ComputeConfig)
 
 
-@pyrallis.wrap()
+@obligate.wrap()
 def main(cfg: TrainConfig):
     print(f'Training {cfg.log.exp_name}...')
     print(f'\tUsing {cfg.compute.workers} workers and {cfg.compute.eval_workers} evaluation workers')
     print(f'\tSaving to {cfg.log.exp_dir}')
-    print(pyrallis.dump(cfg))
+    print(obligate.dump(cfg))
 
 
 if __name__ == '__main__':
