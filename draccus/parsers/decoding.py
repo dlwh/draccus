@@ -4,6 +4,7 @@ from collections import OrderedDict
 from dataclasses import MISSING, Field, fields, is_dataclass
 from functools import lru_cache, partial
 from logging import getLogger
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 from draccus.parsers.registry_utils import RegistryFunc, withregistry
@@ -35,8 +36,19 @@ def decode(cls: Type[T], raw_value: Any) -> T:
 
 
 # Dictionary mapping from types/type annotations to their decoding functions.
-for t in [str, float, int, bool, bytes]:
+for t in [str, float, int, bytes]:
     decode.register(t, t)
+
+
+@decode.register(bool)
+def decode_bool(raw_value: Any) -> bool:
+    # only accept yaml 1.2 bools
+    if raw_value is True or raw_value == "true":
+        return True
+    elif raw_value is False or raw_value == "false":
+        return False
+    else:
+        raise ValueError(f"Couldn't parse '{raw_value}' as a bool")
 
 
 def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
@@ -307,9 +319,6 @@ def no_op(v: T) -> T:
 def try_constructor(t: Type[T]) -> Callable[[Any], Union[T, Any]]:
     """Tries to use the type as a constructor. If that fails, returns the value as-is."""
     return try_functions(lambda val: t(**val), lambda val: t(val))
-
-
-from pathlib import Path
 
 
 decode.register(Path, Path)
