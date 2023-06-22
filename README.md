@@ -1,6 +1,6 @@
+    <!--
 <p align="center"><img src="https://raw.githubusercontent.com/eladrich/pyrallis/master/docs/pyrallis_logo.png" alt="logo" width="70%" /></p>
 
-    <!--
 <p align="center">
 <a href="https://badge.fury.io/py/draccus"><img src="https://badge.fury.io/py/pyrallis.svg" alt="PyPI version" height="18"></a>
     <a href="https://github.com/eladrich/pyrallis/actions/workflows/pytest.yml"><img src="https://github.com/eladrich/pyrallis/actions/workflows/pytest.yml/badge.svg" alt="PyTest" height="18"></a>
