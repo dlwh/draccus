@@ -13,7 +13,7 @@
 
 # Draccus - Slightly Less Simple Configuration with Dataclasses
 
-> Draccus (adj): Indispensable; essential; necessary; obligatory; mandatory; unavoidably invoked.
+> Draccus: “a large herbivorous reptilian creature, known for their ability to breathe fire.”
 
 Draccus is a fork of the excellent [Pyrallis](https://github.com/eladrich/pyrallis) library, but with
 a few changes to make it more suitable for my use cases. The main changes are:
