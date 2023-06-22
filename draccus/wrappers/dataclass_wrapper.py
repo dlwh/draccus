@@ -1,5 +1,6 @@
 import argparse
 import dataclasses
+from argparse import _ActionsContainer
 from dataclasses import _MISSING_TYPE
 from logging import getLogger
 from typing import Dict, List, Optional, Type, Union, cast
@@ -15,7 +16,7 @@ from .wrapper import Wrapper
 logger = getLogger(__name__)
 
 
-class DataclassWrapper(Wrapper[Dataclass]):
+class DataclassWrapper(Wrapper[Type[Dataclass]]):
     def __init__(
         self,
         dataclass: Type[Dataclass],
@@ -26,7 +27,6 @@ class DataclassWrapper(Wrapper[Dataclass]):
         _field: dataclasses.Field = None,
         field_wrapper_class: Type[FieldWrapper] = FieldWrapper,
     ):
-        # super().__init__(dataclass, name)
         self.dataclass = dataclass
         self._name = name
         self.default = default
@@ -59,6 +59,7 @@ class DataclassWrapper(Wrapper[Dataclass]):
                     f"Field {field.name} is of type {field.type}, which isn't "
                     "supported yet. (container of a dataclass type)"
                 )
+            # TODO: special case custom handlers here
 
             elif dataclasses.is_dataclass(field.type):
                 # handle a nested dataclass attribute
@@ -81,20 +82,18 @@ class DataclassWrapper(Wrapper[Dataclass]):
                 logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
                 self.fields.append(field_wrapper)
 
-        logger.debug(f"The dataclass at attribute {self.dest} has default values: {self.defaults}")
+    @property
+    def wrapped(self):
+        return self.dataclass
 
-    def add_arguments(self, parser: argparse.ArgumentParser):
-        from draccus.argparsing import ArgumentParser
-
-        parser = cast(ArgumentParser, parser)
+    def register_actions(self, parser: _ActionsContainer) -> None:
         option_fields = [field for field in self.fields if field.arg_options]
 
         if len(option_fields) > 0:
             # Only show groups with parameters
             group = parser.add_argument_group(title=self.title, description=self.description)
             for wrapped_field in option_fields:
-                logger.debug(f"Arg options for field '{wrapped_field.name}': {wrapped_field.arg_options}")
-                group.add_argument(*wrapped_field.option_strings, **wrapped_field.arg_options)
+                wrapped_field.register_actions(group)
 
     @property
     def name(self) -> str:
@@ -105,38 +104,39 @@ class DataclassWrapper(Wrapper[Dataclass]):
     def parent(self) -> Optional["DataclassWrapper"]:
         return self._parent
 
-    @property
-    def defaults(self) -> List[Dataclass]:
-        if self._defaults:
-            return self._defaults
-        if self._field is None:
-            return []
-        assert self.parent is not None
-        if self.parent.defaults:
-            self._defaults = []
-            for default in self.parent.defaults:
-                if default is None:
-                    default = None
-                else:
-                    default = getattr(default, self.name)
-                self._defaults.append(default)
-        else:
-            try:
-                default_field_value = utils.default_value(self._field)
-            except TypeError as e:
-                # utils.default_value tries to construct the field to get default value and might fail
-                # if the field has some required arguments
-                logger.debug(f"Could not get default value for field '{self._field.name}'\n\tUnderlying Error: {e}")
-                default_field_value = dataclasses.MISSING
-            if isinstance(default_field_value, _MISSING_TYPE):
-                self._defaults = []
-            else:
-                self._defaults = [default_field_value]
-        return self._defaults
-
-    @defaults.setter
-    def defaults(self, value: List[Dataclass]):
-        self._defaults = value
+    # @property
+    # def defaults(self) -> List[Dataclass]:
+    #     raise NotImplementedError("This should be overridden")
+    #     if self._defaults:
+    #         return self._defaults
+    #     if self._field is None:
+    #         return []
+    #     assert self.parent is not None
+    #     if self.parent.defaults:
+    #         self._defaults = []
+    #         for default in self.parent.defaults:
+    #             if default is None:
+    #                 default = None
+    #             else:
+    #                 default = getattr(default, self.name)
+    #             self._defaults.append(default)
+    #     else:
+    #         try:
+    #             default_field_value = utils.default_value(self._field)
+    #         except TypeError as e:
+    #             # utils.default_value tries to construct the field to get default value and might fail
+    #             # if the field has some required arguments
+    #             logger.debug(f"Could not get default value for field '{self._field.name}'\n\tUnderlying Error: {e}")
+    #             default_field_value = dataclasses.MISSING
+    #         if isinstance(default_field_value, _MISSING_TYPE):
+    #             self._defaults = []
+    #         else:
+    #             self._defaults = [default_field_value]
+    #     return self._defaults
+    #
+    # @defaults.setter
+    # def defaults(self, value: List[Dataclass]):
+    #     self._defaults = value
 
     @property
     def title(self) -> str:

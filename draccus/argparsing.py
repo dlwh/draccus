@@ -74,7 +74,7 @@ class ArgumentParser(Generic[T], argparse.ArgumentParser):
 
         for wrapper in self._wrappers:
             logger.debug(f"Adding arguments for dataclass: {wrapper.dataclass} at destination {wrapper.dest}")
-            wrapper.add_arguments(parser=self)
+            wrapper.register_actions(parser=self)
 
     def _assert_no_conflicts(self):
         """Checks for a field name that conflicts with utils.CONFIG_ARG"""
