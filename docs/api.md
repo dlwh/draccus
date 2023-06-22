@@ -1,9 +1,9 @@
-# The pyrallis API
+# The draccus API
 
-Pyrallis is designed to have a relatively small API, you can get familiar with it below 📚
+Draccus is designed to have a relatively small API, you can get familiar with it below 📚
 
 ## Parsing Interface
-### pyrallis.parse
+### draccus.parse
 ```python
 def parse(config_class: Type[T],
           config_path: Optional[Union[Path, str]] = None,
@@ -13,7 +13,7 @@ Parses the available arguments and return an initialized dataclass of type `conf
 
 Each dataclass attribute is mapped to a matching argparse argument, where nested arguments are concatenated with the dot notation. That is, if `config_class` contains a `config_class.compute.workers` attribute, the matching argparse argument will simply be `--compute.workers=42`. The full set of arguments is visible using the `--help` command.
 
-Pyrallis also searches for an optional `yaml` configuration file defined either with the default `config_path` parameter, or specified from command-line using the dedicated `--config_path` argument. The configuration file is mapped according to the `yaml` hierarchy.
+Draccus also searches for an optional `yaml` configuration file defined either with the default `config_path` parameter, or specified from command-line using the dedicated `--config_path` argument. The configuration file is mapped according to the `yaml` hierarchy.
 That is, if `config_class` contains a `config_class.compute.workers` attribute, the matching `yaml` argument would be
 ```yaml
 compute:
@@ -59,14 +59,14 @@ The arguments can then be specified using command-line arguments, a `yaml` confi
 $ python train_model.py --config_path=some_config.yaml --exp_name=my_first_exp
 Training my_first_exp with 42 workers...
 ```
-Not sure what arguments are available? pyrallis also automagically generates the `--help` command 🪄
+Not sure what arguments are available? draccus also automagically generates the `--help` command 🪄
 ```console
 $ python train_model.py --help
 usage: train_model.py [-h] [--config_path str] [--workers int] [--exp_name str]
 
 optional arguments:
   -h, --help      show this help message and exit
-  --config_path str    Path for a config file to parse with pyrallis (default:
+  --config_path str    Path for a config file to parse with draccus (default:
                   None)
 
 TrainConfig ['options']:
@@ -76,11 +76,11 @@ TrainConfig ['options']:
   --exp_name str  The experiment name (default: default_exp)
 ```
 
-### pyrallis.wrap
+### draccus.wrap
 ```python
 def wrap(config_path=None)
 ```
-Inspired by Hydra, Pyrallis also offers an alternative decorator that wraps your main function and automatically initializes a configuration class to match your function signature.
+Inspired by Hydra, Draccus also offers an alternative decorator that wraps your main function and automatically initializes a configuration class to match your function signature.
 
 > Parameters
 
@@ -88,13 +88,13 @@ Inspired by Hydra, Pyrallis also offers an alternative decorator that wraps your
 
 > Returns
 
-A wrapped function, where the first argument is implicitly initialized with pyrallis.
+A wrapped function, where the first argument is implicitly initialized with draccus.
 
 > Example
-=== "@pyrallis.wrap"
+=== "@draccus.wrap"
 
     ``` python
-    @pyrallis.wrap()
+    @draccus.wrap()
     def main(cfg: TrainConfig):
         print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 
@@ -102,11 +102,11 @@ A wrapped function, where the first argument is implicitly initialized with pyra
         main() # Notice that cfg is not explicitly passed to main!
     ```
 
-=== "pyrallis.parse"
+=== "draccus.parse"
 
     ``` python
     def main():
-        cfg = pyrallis.parse(config_class=TrainConfig)
+        cfg = draccus.parse(config_class=TrainConfig)
         print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 
     if __name__ == '__main__':
@@ -115,11 +115,11 @@ A wrapped function, where the first argument is implicitly initialized with pyra
 
 ## Types and Registration
 
-### pyrallis.decode
+### draccus.decode
 ```python
 def decode(t: Type[T], raw_value: Any) -> T:
 ```
-Parse a given raw value and produce the corresponding type. This function can parse any of the supported pyrallis types, from standard types to enums and dataclasses.
+Parse a given raw value and produce the corresponding type. This function can parse any of the supported draccus types, from standard types to enums and dataclasses.
 
 
 > Parameters
@@ -134,17 +134,17 @@ A value of type `T` constructed from `raw_value`
 
 > Examples:
 
-Pyrallis can decode a variety of different types
+Draccus can decode a variety of different types
 
 ```python
-pyrallis.decode(float, '0.7') # Output: 0.7
+draccus.decode(float, '0.7') # Output: 0.7
 
-pyrallis.decode(typing.List[int],['6','3','4']) # Output: [6, 3, 4]
+draccus.decode(typing.List[int],['6','3','4']) # Output: [6, 3, 4]
 
-pyrallis.decode(typing.Union[str, float],'2.3') # Output: '2.3'
+draccus.decode(typing.Union[str, float],'2.3') # Output: '2.3'
 ```
 
-The `pyrallis.decode` function is also used to parse dataclasses from dictionaires.
+The `draccus.decode` function is also used to parse dataclasses from dictionaires.
 The dictionary is assumed to have a structure that matches the dataclass, with possibly missing values.
 For example, assuming the following dataclass
 ```python
@@ -172,20 +172,20 @@ A valid dictionary can be
 }
 ```
 
-Where `#!python pyrallis.decode(TrainConfig, d)` will generate the matching dataclass. The values will be fed into the dataclass constructor. Values can be missing if they have a default value, otherwise pyrallis will just fail to construct the class.
+Where `#!python draccus.decode(TrainConfig, d)` will generate the matching dataclass. The values will be fed into the dataclass constructor. Values can be missing if they have a default value, otherwise draccus will just fail to construct the class.
 
 
 
-#### pyrallis.decode.register
+#### draccus.decode.register
 
 ```python
 def register(cls, func, include_subclasses=False)
 ```
-Pyrallis can decode many different types, but there's still a chance you might want to a type that isn't already built-in into pyrallis. This can be easily done using the register mechanism.
+Draccus can decode many different types, but there's still a chance you might want to a type that isn't already built-in into draccus. This can be easily done using the register mechanism.
 
 ??? "The @withregistry wrapper"
 
-    The register method is a result of using the @withregistry wrapper over the pyrallis.decode function, a variant for pyrallis of the @singledispatch that only creates a registry and does not override the default entrypoint.
+    The register method is a result of using the @withregistry wrapper over the draccus.decode function, a variant for draccus of the @singledispatch that only creates a registry and does not override the default entrypoint.
 
 
 > Parameters
@@ -200,7 +200,7 @@ Registers the function, no return value.
 
 > Examples:
 
-Say we want to add an option to decode a numpy array into pyrallis.
+Say we want to add an option to decode a numpy array into draccus.
 
 ```python
 import numpy as np
@@ -211,20 +211,20 @@ draccus.decode.register(np.ndarray, np.asarray)
 
 The register function can also be used as a wrapper
 ```python
-@pyrallis.decode.register(np.ndarray)
+@draccus.decode.register(np.ndarray)
 def decode_array(x):
     return np.asarray(x)
 ```
 
 For inherited types one can either register it directly, or register a parent class
 ```python
-pyrallis.decode.register(SomeClass, lambda x: SomeClass(x))
+draccus.decode.register(SomeClass, lambda x: SomeClass(x))
 # or
-pyrallis.decode.register(BaseClass, lambda t, x: t(x), include_subclasses=True)
+draccus.decode.register(BaseClass, lambda t, x: t(x), include_subclasses=True)
 ```
 Where `t` would be some subclass of `BaseClass`.
 
-### pyrallis.encode
+### draccus.encode
 ```python
 def encode(obj: Any) -> Any:
 ```
@@ -245,14 +245,14 @@ A yaml-compatible object. For dataclasses, a matching dictionary will be generat
 For many types the encode function will simply return the same object, as they are already yaml-compatible.
 
 ```python
-pyrallis.encode(0.7) # Output: 0.7
+draccus.encode(0.7) # Output: 0.7
 
-pyrallis.encode(['6','3','4']) # Output: ['6','3','4']
+draccus.encode(['6','3','4']) # Output: ['6','3','4']
 
-pyrallis.encode((0.2, 0.3)) # Output: [0.2, 0.3]
+draccus.encode((0.2, 0.3)) # Output: [0.2, 0.3]
 ```
 
-Most of the logic in `pyrallis.encode` is related to encoding of dataclasses. A given dataclass will be encoded to a dictionary representing the same hierarchy and values.
+Most of the logic in `draccus.encode` is related to encoding of dataclasses. A given dataclass will be encoded to a dictionary representing the same hierarchy and values.
 For example, assuming the following dataclass and its instance
 ```python
 
@@ -271,7 +271,7 @@ class TrainConfig:
 cfg = TrainConfig(compute=ComputeConfig(workers=2, eval_workers=8))
 ```
 
-The output of `pyrallis.encode(cfg)` would be
+The output of `draccus.encode(cfg)` would be
 ```python
 {
     'compute':
@@ -282,7 +282,7 @@ The output of `pyrallis.encode(cfg)` would be
 }
 ```
 
-#### pyrallis.encode.register
+#### draccus.encode.register
 
 ```python
 def register(cls, func)
@@ -291,7 +291,7 @@ If an object you want to encode is not serializable, you can easily register a f
 
 ??? "The @singledispatch wrapper"
 
-    The register method is a result of using the @singledispatch wrapper over the pyrallis.encode function, allowing to override it with new encoders.
+    The register method is a result of using the @singledispatch wrapper over the draccus.encode function, allowing to override it with new encoders.
 
 
 > Parameters
@@ -305,7 +305,7 @@ Registers the function, no return value.
 
 > Examples:
 
-Say we want to add an option to encode a numpy array into pyrallis.
+Say we want to add an option to encode a numpy array into draccus.
 
 ```python
 import numpy as np
@@ -316,13 +316,13 @@ draccus.encode.register(np.ndarray, lambda x: x.tolist())
 
 The register function can also be used as a wrapper
 ```python
-@pyrallis.encode.register(np.ndarray)
+@draccus.encode.register(np.ndarray)
 def encode_array(x):
     return x.tolist()
 ```
 
 ### Supported Types
-pyrallis comes with many supported types, as detailed below. Additional types can be added using the `pyrallis.decode.register` and `pyrallis.encode.register` functionality.
+draccus comes with many supported types, as detailed below. Additional types can be added using the `draccus.decode.register` and `draccus.encode.register` functionality.
 
 #### Standard Types
 
@@ -372,7 +372,7 @@ $ python train_model.py --worker_names=null
 
 `typing.Union`
 
-For unions `pyrallis` sequentially tries to apply conversion to each type and sticks with the first one that works. This means there could be cases where the order of values in the Union affects the end result (i.e. `#!python typing.Union[int, float]`).
+For unions `draccus` sequentially tries to apply conversion to each type and sticks with the first one that works. This means there could be cases where the order of values in the Union affects the end result (i.e. `#!python typing.Union[int, float]`).
 
 
 
@@ -381,23 +381,23 @@ For unions `pyrallis` sequentially tries to apply conversion to each type and st
 
 `Enum`
 
-Enums can be really useful for configurations, `pyrallis` inherently supports the `enum.Enum` class and parses enums using the matching keyword values.
+Enums can be really useful for configurations, `draccus` inherently supports the `enum.Enum` class and parses enums using the matching keyword values.
 
 `pathlib.Path`
 
-The `pathlib.Path` type is useful for path manipulation, and hence a useful type for our configuration dataclasses. `pyrallis` inherently supports the class and can convert an `str` to `Path` and back, according to the type hints.
+The `pathlib.Path` type is useful for path manipulation, and hence a useful type for our configuration dataclasses. `draccus` inherently supports the class and can convert an `str` to `Path` and back, according to the type hints.
 
 `dataclasses`
-`Dataclasses` are also supported by `pyrallis.decode` and `pyrallis.encode`. In fact, this is how pyrallis operates behind the scenes.
+`Dataclasses` are also supported by `draccus.decode` and `draccus.encode`. In fact, this is how draccus operates behind the scenes.
 
 ## Working with Files
 
-### pyrallis.dump
+### draccus.dump
 ```python
 def dump(config: Dataclass, stream=None, omit_defaults: bool = False, **kwargs)
 ```
 Serialize a configuration dataclass into a file stream. If stream is None, return the produced string instead. Additional arguments are passed along to the `dump` function of the current configuration format.
-In practice this function uses pyrallis.encode to create a standard dictionary from the dataclass which is then passed along to the configuration parser.
+In practice this function uses draccus.encode to create a standard dictionary from the dataclass which is then passed along to the configuration parser.
 
 > Parameters
 
@@ -413,21 +413,21 @@ If no stream is provided, returns the produced string. Otherwise, no return valu
 > Example:
 
 ```python
-@pyrallis.wrap()
+@draccus.wrap()
 def main(cfg: TrainConfig):
     print('The generated config is:')
-    print(pyrallis.dump(cfg))
+    print(draccus.dump(cfg))
     # Saving to file
-    pyrallis.dump(cfg, open('/configs/train_config.yaml','w'))
+    draccus.dump(cfg, open('/configs/train_config.yaml','w'))
 ```
 
 
-### pyrallis.load
+### draccus.load
 ```python
 def load(t: Type[Dataclass], stream):
 ```
 Parse the document from the stream and produce the corresponding dataclass
-In practice this function first loads a dictionary from the stream and then uses `pyrallis.decode` to generate a valid dataclass from it.
+In practice this function first loads a dictionary from the stream and then uses `draccus.decode` to generate a valid dataclass from it.
 
 > Parameters
 
@@ -442,30 +442,30 @@ A dataclass instance from type `t`.
 > Example:
 
 ```python
-cfg = pyrallis.load(TrainConfig, open('/configs/train_config.yaml','r'))
+cfg = draccus.load(TrainConfig, open('/configs/train_config.yaml','r'))
 print('Loaded config has {cfg.workers} workers')
 ```
 
-### pyrallis.set_config_type
+### draccus.set_config_type
 ```python
 def set_config_type(type_val: Union[ConfigType, str])
 ```
-By default, pyrallis uses `yaml` for parsing string and files and this is its recommended format. However, pyrallis also supports `json` and `toml`. When using `pyrallis.set_config_type` the global context of pyrallis will change so that the matching configuration format will be used for  `pyrallis.parse`, `pyrallis.dump` and `pyrallis.load`.
+By default, draccus uses `yaml` for parsing string and files and this is its recommended format. However, draccus also supports `json` and `toml`. When using `draccus.set_config_type` the global context of draccus will change so that the matching configuration format will be used for  `draccus.parse`, `draccus.dump` and `draccus.load`.
 
 To change the configuration type for a specific context use the  `with` context
 
 ```python
-with pyrallis.config_type('json'):
-    pyrallis.dump(cfg)
+with draccus.config_type('json'):
+    draccus.dump(cfg)
 ```
 
 !!! info
 
-    Note that the `pyrallis.parse` function is also dependent on the configuration format as strings from cmd are first parsed based on the current configuration format. This ensures a unified behavior when parsing from files and cmd arguments.
+    Note that the `draccus.parse` function is also dependent on the configuration format as strings from cmd are first parsed based on the current configuration format. This ensures a unified behavior when parsing from files and cmd arguments.
 
 > Parameters
 
-* **type_val** - A string representing the desired format (`#!python "json", "yaml", "toml"`) or the matching enum value (`#!python pyrallis.ConfigType.YAML`)
+* **type_val** - A string representing the desired format (`#!python "json", "yaml", "toml"`) or the matching enum value (`#!python draccus.ConfigType.YAML`)
 
 
 > Example
@@ -492,7 +492,7 @@ def main(cfg: TrainConfig):
 ```
 
 ## Helper Functions
-### pyrallis.field
+### draccus.field
 
 ```python
 def field(*, default=dataclasses.MISSING, default_factory=dataclasses.MISSING, init=True, repr=True,
@@ -535,11 +535,11 @@ Well, you would have to create a dedicated factory function that regenerates the
 ```python
 worker_inds: List[int] = field(default_factory=lambda : [1,2,3])
 ```
-Kind of annoying and could be confusing for a new guest reading your code :confused:. This is where `pyrallis.field` can be helpful
+Kind of annoying and could be confusing for a new guest reading your code :confused:. This is where `draccus.field` can be helpful
 
 ```python
 from draccus import field
 
 worker_inds: List[int] = field(default=[1, 2, 3], is_mutable=True)
 ```
-The `pyrallis.field` behaves like the regular `dataclasses.field` with an additional `is_mutable` flag. When toggled, the `default_factory` is created automatically, offering the same functionally with a more reader-friendly syntax.
+The `draccus.field` behaves like the regular `dataclasses.field` with an additional `is_mutable` flag. When toggled, the `default_factory` is created automatically, offering the same functionally with a more reader-friendly syntax.
