@@ -1,9 +1,9 @@
 """Abstract Wrapper base-class for the FieldWrapper and DataclassWrapper."""
 
 from abc import ABC, abstractmethod
-from typing import Generic, Optional, List
+from typing import Generic, List, Optional
 
-from obligate.utils import T
+from draccus.utils import T
 
 
 class Wrapper(Generic[T], ABC):
@@ -17,7 +17,7 @@ class Wrapper(Generic[T], ABC):
         if self.parent is None:
             return self.name
         lineage_names: List[str] = [w.name for w in self.lineage()]
-        if lineage_names[-1] is None: # root usually won't have a name
+        if lineage_names[-1] is None:  # root usually won't have a name
             lineage_names = lineage_names[:-1]
         self._dest = ".".join(reversed([self.name] + lineage_names))
         return self._dest

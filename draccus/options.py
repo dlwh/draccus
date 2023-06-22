@@ -1,7 +1,7 @@
 import contextlib
 from typing import Union
 
-from obligate.parsers.config_parsers import ParserEnum, YAMLParser, JSONParser, TOMLParser
+from draccus.parsers.config_parsers import JSONParser, ParserEnum, TOMLParser, YAMLParser
 
 
 class ConfigType(ParserEnum):

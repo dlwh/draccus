@@ -13,7 +13,8 @@ class RegistryFunc:
 
 
 def withregistry(base_func):
-    import types, weakref
+    import types
+    import weakref
 
     registry = {}
     dispatch_cache = weakref.WeakKeyDictionary()
@@ -48,23 +49,22 @@ def withregistry(base_func):
         if func is None:
             if isinstance(cls, type):
                 return lambda f: register(cls, func=f, include_subclasses=include_subclasses)
-            ann = getattr(cls, '__annotations__', {})
+            ann = getattr(cls, "__annotations__", {})
             if not ann:
                 raise TypeError(
                     f"Invalid first argument to `register()`: {cls!r}. "
-                    f"Use either `@register(some_class)` or plain `@register` "
-                    f"on an annotated function."
+                    "Use either `@register(some_class)` or plain `@register` "
+                    "on an annotated function."
                 )
             func = cls
 
             # only import typing if annotation parsing is necessary
             from typing import get_type_hints
+
             argname, cls = next(iter(get_type_hints(func).items()))
-            assert isinstance(cls, type), (
-                f"Invalid annotation for {argname!r}. {cls!r} is not a class."
-            )
+            assert isinstance(cls, type), f"Invalid annotation for {argname!r}. {cls!r} is not a class."
         registry[cls] = RegistryFunc(func, include_subclasses)
-        if cache_token is None and hasattr(cls, '__abstractmethods__'):
+        if cache_token is None and hasattr(cls, "__abstractmethods__"):
             cache_token = get_cache_token()
         dispatch_cache.clear()
         return func

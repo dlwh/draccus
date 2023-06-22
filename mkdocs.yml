@@ -1,13 +1,11 @@
-site_name: Pyrallis
-repo_name: 'eladrich/pyrallis'
-repo_url: 'https://github.com/eladrich/pyrallis'
+site_name: Draccus
+repo_name: 'dlwh/draccus'
+repo_url: 'https://github.com/dlwh/draccus'
 theme:
   name: material
   palette:
     scheme: slate
     primary: "blue grey"
-  logo: pyrallis_only_logo.png
-  favicon: pyrallis_only_logo.png
   features:
     - navigation.tabs
     - toc.integrate

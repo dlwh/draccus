@@ -8,7 +8,7 @@ Creation of an argparse configuration is really simple, just use `pyrallis.parse
 
 ```python title="train_model.py"  linenums="1"
 from dataclasses import dataclass, field
-import obligate
+import draccus
 
 
 @dataclass
@@ -21,7 +21,7 @@ class TrainConfig:
 
 
 def main():
-    cfg = obligate.parse(config_class=TrainConfig)
+    cfg = draccus.parse(config_class=TrainConfig)
     print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 
 
@@ -55,14 +55,14 @@ TrainConfig ['options']:
 ```
 
 
- 
+
 Don't like the `pyrallis.parse` syntax?
 ```python
 def main():
     cfg = pyrallis.parse(config_class=TrainConfig)
     print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 ```
-One can equivalently use the `pyrallis.wrap` syntax 😎 
+One can equivalently use the `pyrallis.wrap` syntax 😎
 ```python
 @pyrallis.wrap()
 def main(cfg: TrainConfig):
@@ -79,7 +79,7 @@ When using a dataclass we can add additional functionality using existing `datac
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
-import obligate
+import draccus
 
 
 @dataclass
@@ -104,7 +104,7 @@ class TrainConfig:
         return self.exp_root / self.exp_name
 
 
-@obligate.wrap()
+@draccus.wrap()
 def main(cfg: TrainConfig):
     print(f'Training {cfg.exp_name}...')
     print(f'\tUsing {cfg.workers} workers and {cfg.eval_workers} evaluation workers')
@@ -209,10 +209,10 @@ Finally, one can easily extend the serialization to support new types 🔥
 # For decoding from cmd/yaml
 pyrallis.decode.register(np.ndarray,np.asarray)
 
-# For encoding to yaml 
+# For encoding to yaml
 pyrallis.encode.register(np.ndarray, lambda x: str(list(x)))
 
-# Or with the wrapper version instead 
+# Or with the wrapper version instead
 @pyrallis.encode.register
 def encode_array(arr : np.ndarray) -> str:
     return str(list(arr))

@@ -5,7 +5,7 @@ Pyrallis is designed to have a relatively small API, you can get familiar with i
 ## Parsing Interface
 ### pyrallis.parse
 ```python
-def parse(config_class: Type[T], 
+def parse(config_class: Type[T],
           config_path: Optional[Union[Path, str]] = None,
           args: Optional[Sequence[str]] = None) -> T:
 ```
@@ -39,7 +39,7 @@ A small working example would look like that
 
 ```python title="train_model.py"  linenums="1"
 from dataclasses import dataclass
-import obligate
+import draccus
 
 
 @dataclass
@@ -50,7 +50,7 @@ class TrainConfig:
 
 
 def main():
-    cfg = obligate.parse(config_class=TrainConfig)
+    cfg = draccus.parse(config_class=TrainConfig)
     print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 ```
 The arguments can then be specified using command-line arguments, a `yaml` configuration file, or both
@@ -145,7 +145,7 @@ pyrallis.decode(typing.Union[str, float],'2.3') # Output: '2.3'
 ```
 
 The `pyrallis.decode` function is also used to parse dataclasses from dictionaires.
-The dictionary is assumed to have a structure that matches the dataclass, with possibly missing values. 
+The dictionary is assumed to have a structure that matches the dataclass, with possibly missing values.
 For example, assuming the following dataclass
 ```python
 @dataclass
@@ -204,9 +204,9 @@ Say we want to add an option to decode a numpy array into pyrallis.
 
 ```python
 import numpy as np
-import obligate
+import draccus
 
-obligate.decode.register(np.ndarray, np.asarray)
+draccus.decode.register(np.ndarray, np.asarray)
 ```
 
 The register function can also be used as a wrapper
@@ -228,7 +228,7 @@ Where `t` would be some subclass of `BaseClass`.
 ```python
 def encode(obj: Any) -> Any:
 ```
-Parse a given object into a yaml compatible object that can be serialized.  
+Parse a given object into a yaml compatible object that can be serialized.
 
 
 > Parameters
@@ -252,7 +252,7 @@ pyrallis.encode(['6','3','4']) # Output: ['6','3','4']
 pyrallis.encode((0.2, 0.3)) # Output: [0.2, 0.3]
 ```
 
-Most of the logic in `pyrallis.encode` is related to encoding of dataclasses. A given dataclass will be encoded to a dictionary representing the same hierarchy and values. 
+Most of the logic in `pyrallis.encode` is related to encoding of dataclasses. A given dataclass will be encoded to a dictionary representing the same hierarchy and values.
 For example, assuming the following dataclass and its instance
 ```python
 
@@ -309,9 +309,9 @@ Say we want to add an option to encode a numpy array into pyrallis.
 
 ```python
 import numpy as np
-import obligate
+import draccus
 
-obligate.encode.register(np.ndarray, lambda x: x.tolist())
+draccus.encode.register(np.ndarray, lambda x: x.tolist())
 ```
 
 The register function can also be used as a wrapper
@@ -326,7 +326,7 @@ pyrallis comes with many supported types, as detailed below. Additional types ca
 
 #### Standard Types
 
-`str` 
+`str`
 
 `float`
 
@@ -471,9 +471,9 @@ with pyrallis.config_type('json'):
 > Example
 
 ```python
-import obligate
+import draccus
 
-obligate.set_config_type('json')
+draccus.set_config_type('json')
 
 
 @dataclass
@@ -483,12 +483,12 @@ class TrainConfig:
     exp_name: str = 'default_exp'  # The experiment name
 
 
-@obligate.wrap()
+@draccus.wrap()
 def main(cfg: TrainConfig):
-    obligate.dump(cfg)
+    draccus.dump(cfg)
 
-    with obligate.config_type('yaml'):
-        obligate.dump(cfg)
+    with draccus.config_type('yaml'):
+        draccus.dump(cfg)
 ```
 
 ## Helper Functions
@@ -538,9 +538,8 @@ worker_inds: List[int] = field(default_factory=lambda : [1,2,3])
 Kind of annoying and could be confusing for a new guest reading your code :confused:. This is where `pyrallis.field` can be helpful
 
 ```python
-from obligate import field
+from draccus import field
 
 worker_inds: List[int] = field(default=[1, 2, 3], is_mutable=True)
 ```
 The `pyrallis.field` behaves like the regular `dataclasses.field` with an additional `is_mutable` flag. When toggled, the `default_factory` is created automatically, offering the same functionally with a more reader-friendly syntax.
-

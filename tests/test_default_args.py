@@ -10,11 +10,11 @@ def test_no_default_argument(simple_attribute):
     class SomeClass:
         a: some_type
 
-    cfg = obligate.parse(config_class=SomeClass, args=shlex.split(f"--a {passed_value}"))
+    cfg = draccus.parse(config_class=SomeClass, args=shlex.split(f"--a {passed_value}"))
     assert cfg == SomeClass(a=expected_value)
 
     with raises(ParsingError):
-        obligate.parse(config_class=SomeClass, args="")
+        draccus.parse(config_class=SomeClass, args="")
 
 
 def test_default_dataclass_argument(simple_attribute, silent):
@@ -24,5 +24,5 @@ def test_default_dataclass_argument(simple_attribute, silent):
     class SomeClass:
         a: some_type = expected_value
 
-    cfg = obligate.parse(config_class=SomeClass, args="")
+    cfg = draccus.parse(config_class=SomeClass, args="")
     assert cfg == SomeClass(a=expected_value)

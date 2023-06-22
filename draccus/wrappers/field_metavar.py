@@ -2,12 +2,8 @@ import functools
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
-from obligate.utils import (
-    get_type_arguments,
-    is_optional,
-    is_tuple,
-    is_union,
-)
+from draccus.utils import get_type_arguments, is_optional, is_tuple, is_union
+
 
 T = TypeVar("T")
 

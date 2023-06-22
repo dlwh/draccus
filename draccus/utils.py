@@ -1,4 +1,4 @@
-"""Utility functions used in various parts of the obligate package."""
+"""Utility functions used in various parts of the draccus package."""
 import builtins
 import collections.abc as c_abc
 import dataclasses
@@ -30,8 +30,10 @@ import typing_inspect as tpi
 try:
     from typing import get_args
 except ImportError:
+
     def get_args(some_type: Type) -> Tuple[Type, ...]:
         return getattr(some_type, "__args__", ())
+
 
 try:
     from typing import get_origin
@@ -40,11 +42,7 @@ except ImportError:
 
 logger = getLogger(__name__)
 
-builtin_types = [
-    getattr(builtins, d)
-    for d in dir(builtins)
-    if isinstance(getattr(builtins, d), type)
-]
+builtin_types = [getattr(builtins, d) for d in dir(builtins) if isinstance(getattr(builtins, d), type)]
 
 T = TypeVar("T")
 
@@ -129,9 +127,7 @@ def is_dataclass_type(t: Type) -> bool:
     Returns:
         bool: Whether its a dataclass type.
     """
-    return dataclasses.is_dataclass(t) or (
-            tpi.is_typevar(t) and dataclasses.is_dataclass(tpi.get_bound(t))
-    )
+    return dataclasses.is_dataclass(t) or (tpi.is_typevar(t) and dataclasses.is_dataclass(tpi.get_bound(t)))
 
 
 def is_enum(t: Type) -> bool:
@@ -190,9 +186,7 @@ def get_dataclass_type_arg(t: Type) -> Optional[Type]:
         return t
     elif is_tuple_or_list(t) or is_union(t):
         return next(
-            filter(
-                None, (get_dataclass_type_arg(arg) for arg in get_type_arguments(t))
-            ),
+            filter(None, (get_dataclass_type_arg(arg) for arg in get_type_arguments(t))),
             None,
         )
     return None
@@ -231,7 +225,7 @@ def default_value(field: dataclasses.Field) -> Union[T, _MISSING_TYPE]:
 
 
 def get_defaults_dict(c: Dataclass):
-    """" Get defaults of a dataclass without generating the object """
+    """ " Get defaults of a dataclass without generating the object"""
     defaults_dict = {}
     for field in dataclasses.fields(c):
         if is_dataclass_type(field.type):
@@ -244,7 +238,9 @@ def get_defaults_dict(c: Dataclass):
                     defaults_dict[field.name] = field.default_factory()
                 except Exception as e:
                     logging.debug(
-                        f"Failed getting default for field {field.name} using its default factory.\n\tUnderlying error: {e}")
+                        f"Failed getting default for field {field.name} using its default factory.\n\tUnderlying"
+                        f" error: {e}"
+                    )
                     continue
     return defaults_dict
 
@@ -258,7 +254,7 @@ def keep_keys(d: Dict, keys_to_keep: Iterable[str]) -> Tuple[Dict, Dict]:
     return d, removed
 
 
-def flatten(d, parent_key=None, sep='.'):
+def flatten(d, parent_key=None, sep="."):
     items = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
@@ -269,7 +265,7 @@ def flatten(d, parent_key=None, sep='.'):
     return dict(items)
 
 
-def deflatten(d: Dict[str, Any], sep: str = '.'):
+def deflatten(d: Dict[str, Any], sep: str = "."):
     deflat_d = {}
     for key in d:
         key_parts = key.split(sep)
@@ -293,14 +289,14 @@ def remove_matching(dict_a, dict_b):
 
 def format_error(e: Exception):
     try:
-        return f'{type(e).__name__}: {e}'
+        return f"{type(e).__name__}: {e}"
     except Exception:
-        return f'Exception: {e}'
+        return f"Exception: {e}"
 
 
 def is_generic_arg(arg):
     try:
-        return arg.__name__ in ['KT', 'VT', 'T']
+        return arg.__name__ in ["KT", "VT", "T"]
     except Exception:
         return False
 
@@ -312,7 +308,7 @@ def has_generic_arg(args):
     return False
 
 
-CONFIG_ARG = 'config_path'
+CONFIG_ARG = "config_path"
 
 if __name__ == "__main__":
     import doctest

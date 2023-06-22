@@ -1,10 +1,10 @@
 import argparse
-from argparse import Action
-from argparse import ONE_OR_MORE, OPTIONAL, PARSER, REMAINDER, ZERO_OR_MORE
+from argparse import ONE_OR_MORE, OPTIONAL, PARSER, REMAINDER, ZERO_OR_MORE, Action
 from logging import getLogger
 from typing import Type
 
-from obligate.wrappers.field_metavar import get_metavar
+from draccus.wrappers.field_metavar import get_metavar
+
 
 logger = getLogger(__name__)
 

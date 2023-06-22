@@ -2,9 +2,9 @@
 
 Just register a new encoder for a given type like so:
 
-import obligate
+import draccus
 import numpy as np
-@obligate.encode.register
+@draccus.encode.register
 def encode_ndarray(obj: np.ndarray) -> str:
     return obj.tostring()
 """
@@ -17,6 +17,7 @@ from functools import singledispatch
 from logging import getLogger
 from os import PathLike
 from typing import Any, Dict, Hashable, TypeVar
+
 
 logger = getLogger(__name__)
 
@@ -59,7 +60,7 @@ def encode(obj: T) -> T: ...
 
 @singledispatch
 def encode(obj: Any) -> Any:
-    """ Encodes an object into a json/yaml-compatible primitive type. """
+    """Encodes an object into a json/yaml-compatible primitive type."""
     try:
         if is_dataclass(obj):
             d: Dict[str, Any] = dict()
@@ -74,7 +75,7 @@ def encode(obj: Any) -> Any:
         elif obj is None:
             return None
         else:
-            raise Exception(f'No parser for object {obj} of type {type(obj)}, consider using obligate.encode.register')
+            raise Exception(f"No parser for object {obj} of type {type(obj)}, consider using draccus.encode.register")
     except Exception as e:
         logger.debug(f"Cannot encode object {obj}: {e}")
         raise e
@@ -111,5 +112,3 @@ for t in [list, tuple, set]:
 encode.register(PathLike, lambda x: x.__fspath__())
 
 encode.register(Namespace, lambda x: encode(vars(x)))
-
-

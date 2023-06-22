@@ -4,25 +4,27 @@ from dataclasses import _MISSING_TYPE
 from logging import getLogger
 from typing import Dict, List, Optional, Type, Union, cast
 
-from obligate.utils import Dataclass
+from draccus.utils import Dataclass
+
+from .. import utils
 from . import docstring
 from .field_wrapper import FieldWrapper
 from .wrapper import Wrapper
-from .. import utils
+
 
 logger = getLogger(__name__)
 
 
 class DataclassWrapper(Wrapper[Dataclass]):
     def __init__(
-            self,
-            dataclass: Type[Dataclass],
-            name: Optional[str] = None,
-            default: Union[Dataclass, Dict] = None,
-            prefix: str = "",
-            parent: "DataclassWrapper" = None,
-            _field: dataclasses.Field = None,
-            field_wrapper_class: Type[FieldWrapper] = FieldWrapper
+        self,
+        dataclass: Type[Dataclass],
+        name: Optional[str] = None,
+        default: Union[Dataclass, Dict] = None,
+        prefix: str = "",
+        parent: "DataclassWrapper" = None,
+        _field: dataclasses.Field = None,
+        field_wrapper_class: Type[FieldWrapper] = FieldWrapper,
     ):
         # super().__init__(dataclass, name)
         self.dataclass = dataclass
@@ -54,23 +56,19 @@ class DataclassWrapper(Wrapper[Dataclass]):
             elif utils.is_tuple_or_list_of_dataclasses(field.type):
                 raise NotImplementedError(
                     f"Field {field.name} is of type {field.type}, which isn't "
-                    f"supported yet. (container of a dataclass type)"
+                    "supported yet. (container of a dataclass type)"
                 )
 
             elif dataclasses.is_dataclass(field.type):
                 # handle a nested dataclass attribute
                 dataclass, name = field.type, field.name
-                child_wrapper = DataclassWrapper(
-                    dataclass, name, parent=self, _field=field
-                )
+                child_wrapper = DataclassWrapper(dataclass, name, parent=self, _field=field)
                 self._children.append(child_wrapper)
 
             elif utils.contains_dataclass_type_arg(field.type):
                 dataclass = utils.get_dataclass_type_arg(field.type)
                 name = field.name
-                child_wrapper = DataclassWrapper(
-                    dataclass, name, parent=self, _field=field, default=None
-                )
+                child_wrapper = DataclassWrapper(dataclass, name, parent=self, _field=field, default=None)
                 child_wrapper.required = False
                 child_wrapper.optional = True
                 self._children.append(child_wrapper)
@@ -78,33 +76,23 @@ class DataclassWrapper(Wrapper[Dataclass]):
             else:
                 # a normal attribute
                 field_wrapper = field_wrapper_class(field, parent=self, prefix=self.prefix)
-                logger.debug(
-                    f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}"
-                )
+                logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
                 self.fields.append(field_wrapper)
 
-        logger.debug(
-            f"The dataclass at attribute {self.dest} has default values: {self.defaults}"
-        )
+        logger.debug(f"The dataclass at attribute {self.dest} has default values: {self.defaults}")
 
     def add_arguments(self, parser: argparse.ArgumentParser):
-        from obligate.argparsing import ArgumentParser
+        from draccus.argparsing import ArgumentParser
 
         parser = cast(ArgumentParser, parser)
         option_fields = [field for field in self.fields if field.arg_options]
 
         if len(option_fields) > 0:
             # Only show groups with parameters
-            group = parser.add_argument_group(
-                title=self.title, description=self.description
-            )
+            group = parser.add_argument_group(title=self.title, description=self.description)
             for wrapped_field in option_fields:
-                logger.debug(
-                    f"Arg options for field '{wrapped_field.name}': {wrapped_field.arg_options}"
-                )
-                group.add_argument(
-                    *wrapped_field.option_strings, **wrapped_field.arg_options
-                )
+                logger.debug(f"Arg options for field '{wrapped_field.name}': {wrapped_field.arg_options}")
+                group.add_argument(*wrapped_field.option_strings, **wrapped_field.arg_options)
 
     @property
     def name(self) -> str:
@@ -135,8 +123,7 @@ class DataclassWrapper(Wrapper[Dataclass]):
             except TypeError as e:
                 # utils.default_value tries to construct the field to get default value and might fail
                 # if the field has some required arguments
-                logger.debug(
-                    f"Could not get default value for field '{self._field.name}'\n\tUnderlying Error: {e}")
+                logger.debug(f"Could not get default value for field '{self._field.name}'\n\tUnderlying Error: {e}")
                 default_field_value = dataclasses.MISSING
             if isinstance(default_field_value, _MISSING_TYPE):
                 self._defaults = []
@@ -158,9 +145,7 @@ class DataclassWrapper(Wrapper[Dataclass]):
     @property
     def description(self) -> str:
         if self.parent and self._field:
-            doc = docstring.get_attribute_docstring(
-                self.parent.dataclass, self._field.name
-            )
+            doc = docstring.get_attribute_docstring(self.parent.dataclass, self._field.name)
             if doc is not None:
                 if doc.docstring_below:
                     return doc.docstring_below
@@ -169,7 +154,7 @@ class DataclassWrapper(Wrapper[Dataclass]):
                 elif doc.comment_inline:
                     return doc.comment_inline
         class_doc = self.dataclass.__doc__ or ""
-        if class_doc.startswith(f'{self.dataclass.__name__}('):
+        if class_doc.startswith(f"{self.dataclass.__name__}("):
             return ""  # The base dataclass doc looks confusing, remove it
         return class_doc
 

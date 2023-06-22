@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from typing import *
 
-import obligate.utils as utils
+import draccus.utils as utils
+
 from .testutils import *
 
 

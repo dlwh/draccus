@@ -6,8 +6,9 @@ import pytest
 
 from .testutils import TestSetup
 
-# from obligate import choice
-# from obligate.helpers import Serializable
+
+# from draccus import choice
+# from draccus.helpers import Serializable
 
 # List of simple attributes to use in tests:
 simple_arguments: List[Tuple[Type, Any, Any]] = [
@@ -36,9 +37,7 @@ simple_arguments: List[Tuple[Type, Any, Any]] = [
 def simple_attribute(request):
     """Test fixture that produces an tuple of (type, passed value, expected value)"""
     some_type, passed_value, expected_value = request.param
-    logging.debug(
-        f"Attribute type: {some_type}, passed value: '{passed_value}', expected: '{expected_value}'"
-    )
+    logging.debug(f"Attribute type: {some_type}, passed value: '{passed_value}', expected: '{expected_value}'")
     return request.param
 
 
@@ -52,9 +51,6 @@ def assert_equals_stdout(capsys):
         assert strip(out) == strip(expected), file_path
 
     return should_equal
-
-
-
 
 
 @pytest.fixture
@@ -77,13 +73,9 @@ def no_stdout(capsys, caplog):
 def no_warnings(caplog):
     yield
     for when in ("setup", "call"):
-        messages = [
-            x.message for x in caplog.get_records(when) if x.levelno == logging.WARNING
-        ]
+        messages = [x.message for x in caplog.get_records(when) if x.levelno == logging.WARNING]
         if messages:
-            pytest.fail(
-                "warning messages encountered during testing: {}".format(messages)
-            )
+            pytest.fail("warning messages encountered during testing: {}".format(messages))
 
 
 @pytest.fixture
@@ -98,9 +90,7 @@ def silent(no_stdout, no_warnings):
 @pytest.fixture
 def logs_warning(caplog):
     yield
-    messages = [
-        x.message for x in caplog.get_records("call") if x.levelno == logging.WARNING
-    ]
+    messages = [x.message for x in caplog.get_records("call") if x.levelno == logging.WARNING]
     if not messages:
         pytest.fail(f"No warning messages were logged: {messages}")
 
@@ -128,14 +118,10 @@ def TaskHyperParameters():
         num_layers: int = 1  # number of dense layers
         num_units: int = 8  # units per layer
         activation: Activations = field(default=Activations.TANH)  # activation function
-        use_batchnorm: bool = (
-            False  # whether or not to use batch normalization after each dense layer
-        )
+        use_batchnorm: bool = False  # whether or not to use batch normalization after each dense layer
         use_dropout: bool = True  # whether or not to use dropout after each dense layer
         dropout_rate: float = 0.1  # the dropout rate
-        use_image_features: bool = (
-            True  # whether or not image features should be used as input
-        )
+        use_image_features: bool = True  # whether or not image features should be used as input
         use_likes: bool = True  # whether or not 'likes' features should be used as input
         l1_reg: float = 0.005  # L1 regularization coefficient
         l2_reg: float = 0.005  # L2 regularization coefficient
@@ -150,6 +136,7 @@ def TaskHyperParameters():
 @pytest.fixture
 def HyperParameters(TaskHyperParameters):
     from enum import Enum
+
     class Optimizers(Enum):
         ADAM = "ADAM"
         SGD = "SGD"

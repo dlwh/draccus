@@ -1,10 +1,11 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Type, Any
+from typing import Any, Type
 
-import obligate
-from obligate import ParsingError
-from .testutils import parametrize, TestSetup, raises_missing_required_arg, raises
+import draccus
+from draccus import ParsingError
+
+from .testutils import TestSetup, parametrize, raises, raises_missing_required_arg
 
 
 def test_basic_required_argument(simple_attribute, silent):
@@ -51,9 +52,7 @@ def test_basic_optional_argument(simple_attribute, silent):
         (bool, False, True),
     ],
 )
-def test_arg_value_is_set_when_args_are_provided(
-        some_type: Type, default_value: Any, arg_value: Any
-):
+def test_arg_value_is_set_when_args_are_provided(some_type: Type, default_value: Any, arg_value: Any):
     @dataclass
     class SomeClass(TestSetup):
         a: some_type = default_value  # type: ignore
@@ -144,9 +143,9 @@ def test_parsing_twice():
     class Foo:
         a: int = 123
 
-    cfg = obligate.parse(config_class=Foo, args="")
+    cfg = draccus.parse(config_class=Foo, args="")
     assert cfg.a == 123
-    cfg = obligate.parse(config_class=Foo, args="--a 456".split())
+    cfg = draccus.parse(config_class=Foo, args="--a 456".split())
     assert cfg.a == 456
 
 
@@ -168,7 +167,7 @@ def test_using_a_Type_type():
             self.a = self.a_class()
 
     foo = Foo.setup("")
-    from obligate.utils import contains_dataclass_type_arg
+    from draccus.utils import contains_dataclass_type_arg
 
     assert not contains_dataclass_type_arg(Type[Base])
     assert foo.a_class() == Base()

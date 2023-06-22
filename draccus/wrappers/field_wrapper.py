@@ -2,11 +2,12 @@ import argparse
 import dataclasses
 import inspect
 from logging import getLogger
-from typing import Any, Optional, List, Type, Dict, Set, Union, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
+from .. import utils
 from . import docstring
 from .wrapper import Wrapper
-from .. import utils
+
 
 logger = getLogger(__name__)
 
@@ -93,7 +94,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         _arg_options: Dict[str, Any] = {}
 
         _arg_options["required"] = False  # Required arguments can also be set from yaml,
-                                          # so do not enforce with argparse
+        # so do not enforce with argparse
         _arg_options["dest"] = self.dest
         _arg_options["default"] = self.default
 
@@ -104,15 +105,14 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
             # automatically adds the (default: '123')
             _arg_options["help"] = " "
 
-        _arg_options['type'] = self.type
+        _arg_options["type"] = self.type
         try:
-            _arg_options['type'].__name__ = self.type.__repr__().replace('typing.', '')
+            _arg_options["type"].__name__ = self.type.__repr__().replace("typing.", "")
         except Exception as e:
             # Only to prettify printing, if fails just continue
             pass
 
         return _arg_options
-
 
     @property
     def action(self) -> Union[str, Type[argparse.Action]]:
@@ -134,7 +134,6 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         *option_strings, **kwargs) method.
         """
         return self.field.metadata.get("custom_args", {})
-
 
     @property
     def option_strings(self) -> List[str]:
@@ -160,7 +159,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         options: List[str] = []  # contains the name following the dashes.
 
         # Currently create only a single option name, no support for aliases
-        dashes.append('--')
+        dashes.append("--")
         options.append(self.dest)
 
         # remove duplicates by creating a set.
@@ -249,13 +248,9 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         if self._help:
             return self._help
         try:
-            self._docstring = docstring.get_attribute_docstring(
-                self.parent.dataclass, self.field.name
-            )
+            self._docstring = docstring.get_attribute_docstring(self.parent.dataclass, self.field.name)
         except (SystemExit, Exception) as e:
-            logger.debug(
-                f"Couldn't find attribute docstring for field {self.name}, {e}"
-            )
+            logger.debug(f"Couldn't find attribute docstring for field {self.name}, {e}")
             self._docstring = docstring.AttributeDocString()
 
         if self._docstring.docstring_below:
@@ -307,9 +302,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         return self._parent
 
 
-def only_keep_action_args(
-        options: Dict[str, Any], action: Union[str, Any]
-) -> Dict[str, Any]:
+def only_keep_action_args(options: Dict[str, Any], action: Union[str, Any]) -> Dict[str, Any]:
     """Remove all the arguments in `options` that aren't required by the Action.
 
     Parameters
@@ -357,7 +350,7 @@ def only_keep_action_args(
     kept_options, deleted_options = utils.keep_keys(options, args_to_keep)
     if deleted_options:
         logger.debug(
-            f"Some auto-generated options were deleted, as they were "
+            "Some auto-generated options were deleted, as they were "
             f"not required by the Action constructor: {deleted_options}."
         )
     if deleted_options:

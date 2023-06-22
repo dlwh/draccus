@@ -1,25 +1,25 @@
 """ Functions for decoding dataclass fields from "raw" values (e.g. from json).
 """
 from collections import OrderedDict
-from dataclasses import Field, MISSING, fields, is_dataclass
-from functools import lru_cache
-from functools import partial
+from dataclasses import MISSING, Field, fields, is_dataclass
+from functools import lru_cache, partial
 from logging import getLogger
-from typing import TypeVar, Any, Dict, Type, Callable, Optional, Union, List, Tuple, Set
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, TypeVar, Union
 
-from obligate.parsers.registry_utils import RegistryFunc, withregistry
-from obligate.utils import (
+from draccus.parsers.registry_utils import RegistryFunc, withregistry
+from draccus.utils import (
+    ParsingError,
+    format_error,
     get_type_arguments,
+    has_generic_arg,
     is_dict,
+    is_enum,
     is_list,
     is_set,
     is_tuple,
     is_union,
-    is_enum,
-    ParsingError,
-    format_error,
-    has_generic_arg
 )
+
 
 logger = getLogger(__name__)
 
@@ -39,9 +39,8 @@ for t in [str, float, int, bool, bytes]:
     decode.register(t, t)
 
 
-def decode_dataclass(
-        cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
-    """ Parses an instance of the dataclass `cls` from the dict `d`. """
+def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
+    """Parses an instance of the dataclass `cls` from the dict `d`."""
     if d is None:
         return None
     obj_dict: Dict[str, Any] = d.copy()
@@ -55,10 +54,7 @@ def decode_dataclass(
         name = field.name
         if name not in obj_dict:
             if field.default is MISSING and field.default_factory is MISSING:
-                logger.warning(
-                    f"Couldn't find the field '{name}' in the dict with keys "
-                    f"{list(d.keys())}"
-                )
+                logger.warning(f"Couldn't find the field '{name}' in the dict with keys {list(d.keys())}")
             continue
 
         raw_value = obj_dict.pop(name)
@@ -68,7 +64,9 @@ def decode_dataclass(
             raise e
         except Exception as e:
             raise ParsingError(
-                f"Failed when parsing value='{raw_value}' into field \"{cls}.{name}\" of type {field.type}.\n\tUnderlying error is \"{format_error(e)}\"")
+                f"Failed when parsing value='{raw_value}' into field \"{cls}.{name}\" of type"
+                f' {field.type}.\n\tUnderlying error is "{format_error(e)}"'
+            )
 
         if field.init:
             init_args[name] = field_value
@@ -79,15 +77,13 @@ def decode_dataclass(
 
     # If there are arguments left over in the dict after taking all fields.
     if extra_args:
-        raise Exception(f'The fields {extra_args} do not belong to the class')
+        raise Exception(f"The fields {extra_args} do not belong to the class")
 
     init_args.update(extra_args)
     try:
         instance = cls(**init_args)  # type: ignore
     except TypeError as e:
-        raise ParsingError(
-            f"Couldn't instantiate class {cls} using the given arguments.\n\t Underlying error: {e}"
-        )
+        raise ParsingError(f"Couldn't instantiate class {cls} using the given arguments.\n\t Underlying error: {e}")
 
     for name, value in non_init_args.items():
         logger.debug(f"Setting non-init field '{name}' on the instance.")
@@ -96,7 +92,7 @@ def decode_dataclass(
 
 
 def decode_field(field: Field, raw_value: Any) -> Any:
-    """ Converts a "raw" value (e.g. from json file) to the type of the `field`. """
+    """Converts a "raw" value (e.g. from json file) to the type of the `field`."""
     name = field.name
     field_type = field.type
     logger.debug(f"Decode name = {name}, type = {field_type}")
@@ -180,7 +176,7 @@ def get_decoding_fn(cls: Type[T]) -> Callable[[Any], T]:
         if bound is not None:
             return get_decoding_fn(bound)
 
-    raise Exception(f"No decoding function for type {cls}, consider using obligate.decode.register")
+    raise Exception(f"No decoding function for type {cls}, consider using draccus.decode.register")
 
     # Alternatively could have tried type as constructor, but could have a surprising behaviour
     # return try_constructor(t)
@@ -217,9 +213,7 @@ def decode_union(*types: Type[T]) -> Callable[[Any], Union[T, Any]]:
     while type(None) in types:
         types.remove(type(None))
 
-    decoding_fns: List[Callable[[Any], T]] = [
-        decode_optional(t) if optional else get_decoding_fn(t) for t in types
-    ]
+    decoding_fns: List[Callable[[Any], T]] = [decode_optional(t) if optional else get_decoding_fn(t) for t in types]
     # Try using each of the non-None types, in succession. Worst case, return the value.
     return try_functions(*decoding_fns)
 
@@ -237,7 +231,7 @@ def decode_list(t: Type[T]) -> Callable[[List[Any]], List[T]]:
 
 
 def decode_tuple(*tuple_item_types: Type[T]) -> Callable[[List[T]], Tuple[T, ...]]:
-    """ Makes a parsing function for creating tuples. """
+    """Makes a parsing function for creating tuples."""
     # Get the decoding function for each item type
     has_ellipsis = False
     if Ellipsis in tuple_item_types:
@@ -257,12 +251,12 @@ def decode_tuple(*tuple_item_types: Type[T]) -> Callable[[List[T]], Tuple[T, ...
 
     def _decode_tuple(val: Tuple[Any, ...]) -> Tuple[T, ...]:
         if val is None:
-            raise TypeError('Value must not be None for conversion to a tuple')
+            raise TypeError("Value must not be None for conversion to a tuple")
         if has_ellipsis:
             return tuple(decoding_fn(v) for v in val)
         else:
             if len(decoding_fns) != len(val):
-                err_msg = f'Trying to decode {len(val)} values for a predfined {len(decoding_fns)}-Tuple'
+                err_msg = f"Trying to decode {len(val)} values for a predfined {len(decoding_fns)}-Tuple"
                 raise TypeError(err_msg)
             return tuple(decoding_fns[i](v) for i, v in enumerate(val))
 
@@ -270,7 +264,7 @@ def decode_tuple(*tuple_item_types: Type[T]) -> Callable[[List[T]], Tuple[T, ...
 
 
 def decode_set(item_type: Type[T]) -> Callable[[List[T]], Set[T]]:
-    """ Makes a parsing function for creating sets with items of type `item_type`. """
+    """Makes a parsing function for creating sets with items of type `item_type`."""
     # Get the parsers fn for a list of items of type `item_type`.
     parse_list_fn = decode_list(item_type)
 
@@ -280,10 +274,8 @@ def decode_set(item_type: Type[T]) -> Callable[[List[T]], Set[T]]:
     return _decode_set
 
 
-def decode_dict(
-        K_: Type[K], V_: Type[V]
-) -> Callable[[List[Tuple[Any, Any]]], Dict[K, V]]:
-    """ Creates a decoding function for a dict type. Works with OrderedDict too. """
+def decode_dict(K_: Type[K], V_: Type[V]) -> Callable[[List[Tuple[Any, Any]]], Dict[K, V]]:
+    """Creates a decoding function for a dict type. Works with OrderedDict too."""
     decode_k = get_decoding_fn(K_)
     decode_v = get_decoding_fn(V_)
 
@@ -308,17 +300,16 @@ def decode_dict(
 
 
 def no_op(v: T) -> T:
-    """ Decoding function that gives back the value as-is. """
+    """Decoding function that gives back the value as-is."""
     return v
 
 
 def try_constructor(t: Type[T]) -> Callable[[Any], Union[T, Any]]:
-    """ Tries to use the type as a constructor. If that fails, returns the value as-is. """
+    """Tries to use the type as a constructor. If that fails, returns the value as-is."""
     return try_functions(lambda val: t(**val), lambda val: t(val))
 
 
 from pathlib import Path
 
+
 decode.register(Path, Path)
-
-

@@ -2,7 +2,7 @@
 
     <!--
 <p align="center">
-<a href="https://badge.fury.io/py/obligate"><img src="https://badge.fury.io/py/pyrallis.svg" alt="PyPI version" height="18"></a>
+<a href="https://badge.fury.io/py/draccus"><img src="https://badge.fury.io/py/pyrallis.svg" alt="PyPI version" height="18"></a>
     <a href="https://github.com/eladrich/pyrallis/actions/workflows/pytest.yml"><img src="https://github.com/eladrich/pyrallis/actions/workflows/pytest.yml/badge.svg" alt="PyTest" height="18"></a>
     <a href="https://pepy.tech/project/pyrallis"><img src="https://pepy.tech/badge/pyrallis" alt="Downloads" height="18"></a>
     <a href="#contributors-"><img src="https://img.shields.io/badge/all_contributors-2-orange.svg" alt="All Contributors" height="18"></a>
@@ -11,11 +11,11 @@
 
  -->
 
-# Obligate - Slightly Less Simple Configuration with Dataclasses
+# Draccus - Slightly Less Simple Configuration with Dataclasses
 
-> Obligate (adj): Indispensable; essential; necessary; obligatory; mandatory; unavoidably invoked.
- 
-Obligate is a fork of the excellent [Pyrallis](https://github.com/eladrich/pyrallis) library, but with
+> Draccus (adj): Indispensable; essential; necessary; obligatory; mandatory; unavoidably invoked.
+
+Draccus is a fork of the excellent [Pyrallis](https://github.com/eladrich/pyrallis) library, but with
 a few changes to make it more suitable for my use cases. The main changes are:
 
 * WIP: Support for subtyping configs (that is, choosing between different configs based on a parameter)
@@ -23,30 +23,30 @@ a few changes to make it more suitable for my use cases. The main changes are:
 * WIP: Better support for type parameters
 * Couple of bug fixes
 
-I swear I didn't want to fork it, but the Pyrallis devs (understandably) didn't want to merge some of 
+I swear I didn't want to fork it, but the Pyrallis devs (understandably) didn't want to merge some of
 these.
 
 
 <p align="center"><img src="https://github.com/eladrich/pyrallis/raw/master/docs/argparse2pyrallis.gif" alt="GIF" width="100%" /></p>
 
-## Why `obligate`?
+## Why `draccus`?
 
 We support everything in Pyrallis (see their examples), but also support subtyping and including config files in config files.
 We still try to maintain their simple, clean
 
-With `obligate` your configuration is linked directly to your pre-defined `dataclass`, allowing you to easily create different configuration structures, including nested ones, using an object-oriented design. The parsed arguments are used to initialize your `dataclass`, giving you the typing hints and automatic code completion of a full `dataclass` object.
+With `draccus` your configuration is linked directly to your pre-defined `dataclass`, allowing you to easily create different configuration structures, including nested ones, using an object-oriented design. The parsed arguments are used to initialize your `dataclass`, giving you the typing hints and automatic code completion of a full `dataclass` object.
 
 
 # Everything below here is from Pyrallis. I'll update it eventually.
 
-## My First Obligate Example
+## My First Draccus Example
 
 
 There are several key features to pyrallis but at its core pyrallis simply allows defining an argument parser using a dataclass.
 
-```python 
+```python
 from dataclasses import dataclass
-import obligate
+import draccus
 
 
 @dataclass
@@ -57,7 +57,7 @@ class TrainConfig:
 
 
 def main():
-    cfg = obligate.parse(config_class=TrainConfig)
+    cfg = draccus.parse(config_class=TrainConfig)
     print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 
 ```
@@ -75,7 +75,7 @@ workers: 42
 ```
 
 ### Key Features
-Building on that design `pyrallis` offers some really enjoyable features including 
+Building on that design `pyrallis` offers some really enjoyable features including
 
 * Builtin IDE support for autocompletion and linting thanks to the structured config. 🤓
 * Joint reading from command-line and a config file, with support for specifying a default config file. 😍
@@ -98,7 +98,7 @@ Creation of an argparse configuration is really simple, just use `pyrallis.parse
 
 ```python
 from dataclasses import dataclass, field
-import obligate
+import draccus
 
 
 @dataclass
@@ -111,7 +111,7 @@ class TrainConfig:
 
 
 def main():
-    cfg = obligate.parse(config_class=TrainConfig)
+    cfg = draccus.parse(config_class=TrainConfig)
     print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 
 
@@ -152,7 +152,7 @@ def main():
     cfg = pyrallis.parse(config_class=TrainConfig)
     print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
 ```
-One can equivalently use the `pyrallis.wrap` syntax 😎 
+One can equivalently use the `pyrallis.wrap` syntax 😎
 ```python
 @pyrallis.wrap()
 def main(cfg: TrainConfig):
@@ -169,7 +169,7 @@ When using a dataclass we can add additional functionality using existing `datac
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
-import obligate
+import draccus
 
 
 @dataclass
@@ -194,7 +194,7 @@ class TrainConfig:
         return self.exp_root / self.exp_name
 
 
-@obligate.wrap()
+@draccus.wrap()
 def main(cfg: TrainConfig):
     print(f'Training {cfg.exp_name}...')
     print(f'\tUsing {cfg.workers} workers and {cfg.eval_workers} evaluation workers')
@@ -299,10 +299,10 @@ Finally, one can easily extend the serialization to support new types 🔥
 # For decoding from cmd/yaml
 pyrallis.decode.register(np.ndarray,np.asarray)
 
-# For encoding to yaml 
+# For encoding to yaml
 pyrallis.encode.register(np.ndarray, lambda x: x.tolist())
 
-# Or with the wrapper version instead 
+# Or with the wrapper version instead
 @pyrallis.encode.register
 def encode_array(arr : np.ndarray) -> str:
     return arr.tolist()
@@ -315,9 +315,9 @@ def encode_array(arr : np.ndarray) -> str:
 ## Why Another Parsing Library?
 <img src="https://imgs.xkcd.com/comics/standards_2x.png" alt="XKCD 927 - Standards" width="70%" />
 
-> XKCD 927 - Standards 
+> XKCD 927 - Standards
 
-The builtin `argparse` has many great features but is somewhat outdated :older_man: with one its greatest weakness being the lack of typing. This has led to the development of many great libraries tackling different weaknesses of `argparse` (shout out for all the great projects out there! You rock! :metal:).  
+The builtin `argparse` has many great features but is somewhat outdated :older_man: with one its greatest weakness being the lack of typing. This has led to the development of many great libraries tackling different weaknesses of `argparse` (shout out for all the great projects out there! You rock! :metal:).
 
 In our case, we were looking for a library that would  support the vanilla `dataclass` without requiring dedicated classes, and would have a loading interface from both command-line and files. The closest candidates were `hydra` and `simple-parsing`, but they weren't exactly what we were looking for. Below are the pros and cons from our perspective:
 #### [Hydra](https://github.com/facebookresearch/hydra)
@@ -361,7 +361,7 @@ worker_inds: List[int] = field(default_factory=lambda : [1,2,3])
 Kind of annoying and could be confusing for a new guest reading your code :confused: Now, while this isn't really related to parsing/configuration we decided it could be nice to offer a sugar-syntax for such cases as part of `pyrallis`
 
 ```python
-from obligate import field
+from draccus import field
 
 worker_inds: List[int] = field(default=[1, 2, 3], is_mutable=True)
 ```
@@ -370,18 +370,18 @@ The `pyrallis.field` behaves like the regular `dataclasses.field` with an additi
 
 
 ### Uniform Parsing Syntax
-For parsing files we opted for `yaml` as our format of choice, following `hydra`, due to its concise format. 
+For parsing files we opted for `yaml` as our format of choice, following `hydra`, due to its concise format.
 Now, let us assume we have the following `.yaml` file which `yaml` successfully handles:
 ```yaml
 compute:
   worker_inds: [0,2,3]
 ```
-Intuitively we would also want users to be able to use the same syntax 
+Intuitively we would also want users to be able to use the same syntax
 ```cmd
 python my_app.py --compute.worker_inds=[0,2,3]
 ```
 
-However, the more standard syntax for an argparse application would be 
+However, the more standard syntax for an argparse application would be
 ```cmd
 python my_app.py --compute.worker_inds 0 2 3
 ```

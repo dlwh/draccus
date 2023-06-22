@@ -1,10 +1,11 @@
+import json
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
 import yaml
-import json
 
-from obligate.utils import PyrallisException
+from draccus.utils import PyrallisException
+
 from .testutils import *
 
 
@@ -27,15 +28,15 @@ def test_encode_something(simple_attribute):
     b.l.append((expected_value, expected_value))
     b.t.update({"hey": None, "hey2": expected_value})
 
-    assert obligate.decode(SomeClass, obligate.encode(b)) == b
+    assert draccus.decode(SomeClass, draccus.encode(b)) == b
 
 
-@parametrize('config_type', ['', 'yaml', 'json', 'toml'])
+@parametrize("config_type", ["", "yaml", "json", "toml"])
 def test_dump_load(simple_attribute, config_type, tmp_path):
     some_type, _, expected_value = simple_attribute
 
-    if config_type != '':
-        obligate.set_config_type(config_type)
+    if config_type != "":
+        draccus.set_config_type(config_type)
 
     @dataclass
     class SomeClass:
@@ -43,40 +44,40 @@ def test_dump_load(simple_attribute, config_type, tmp_path):
 
     b = SomeClass(val=expected_value)
 
-    tmp_file = tmp_path / 'config'
-    obligate.dump(b, tmp_file.open('w'))
+    tmp_file = tmp_path / "config"
+    draccus.dump(b, tmp_file.open("w"))
 
-    new_b = obligate.parse(config_class=SomeClass, config_path=tmp_file, args="")
+    new_b = draccus.parse(config_class=SomeClass, config_path=tmp_file, args="")
     assert new_b == b
 
     arguments = shlex.split(f"--config_path {tmp_file}")
-    new_b = obligate.parse(config_class=SomeClass, args=arguments)
+    new_b = draccus.parse(config_class=SomeClass, args=arguments)
     assert new_b == b
 
-    new_b = obligate.parse(config_class=SomeClass, args="")
+    new_b = draccus.parse(config_class=SomeClass, args="")
     assert new_b != b
 
-    obligate.set_config_type('yaml')
+    draccus.set_config_type("yaml")
 
 
 def test_dump_load_context():
     @dataclass
     class SomeClass:
-        val: str = 'hello'
+        val: str = "hello"
 
     b = SomeClass()
 
-    yaml_str = obligate.dump(b)
-    assert yaml_str == yaml.dump(obligate.encode(b))
+    yaml_str = draccus.dump(b)
+    assert yaml_str == yaml.dump(draccus.encode(b))
 
-    with obligate.config_type('json'):
-        json_str = obligate.dump(b)
-        assert json_str == json.dumps(obligate.encode(b))
+    with draccus.config_type("json"):
+        json_str = draccus.dump(b)
+        assert json_str == json.dumps(draccus.encode(b))
 
-    yaml_str = obligate.dump(b)
-    assert yaml_str == yaml.dump(obligate.encode(b))
+    yaml_str = draccus.dump(b)
+    assert yaml_str == yaml.dump(draccus.encode(b))
 
-    assert obligate.get_config_type() is obligate.ConfigType.YAML
+    assert draccus.get_config_type() is draccus.ConfigType.YAML
 
 
 def test_dump_load_dicts(simple_attribute, tmp_path):
@@ -93,13 +94,13 @@ def test_dump_load_dicts(simple_attribute, tmp_path):
     b.l.append((expected_value, expected_value))
     b.t.update({"hey": None, "hey2": expected_value})
 
-    tmp_file = tmp_path / 'config'
-    obligate.dump(b, tmp_file.open('w'))
+    tmp_file = tmp_path / "config"
+    draccus.dump(b, tmp_file.open("w"))
 
-    new_b = obligate.parse(config_class=SomeClass, config_path=tmp_file, args="")
+    new_b = draccus.parse(config_class=SomeClass, config_path=tmp_file, args="")
     assert new_b == b
     arguments = shlex.split(f"--config_path {tmp_file}")
-    new_b = obligate.parse(config_class=SomeClass, args=arguments)
+    new_b = draccus.parse(config_class=SomeClass, args=arguments)
     assert new_b == b
 
 
@@ -109,10 +110,10 @@ def test_dump_load_enum(tmp_path):
         color: Color = Color.red
 
     b = SomeClass()
-    tmp_file = tmp_path / 'config.yaml'
-    obligate.dump(b, tmp_file.open('w'))
+    tmp_file = tmp_path / "config.yaml"
+    draccus.dump(b, tmp_file.open("w"))
 
-    new_b = obligate.parse(config_class=SomeClass, config_path=tmp_file, args="")
+    new_b = draccus.parse(config_class=SomeClass, config_path=tmp_file, args="")
     assert new_b == b
 
 
@@ -122,18 +123,18 @@ def test_reserved_config_word():
         config_path: str = ""
 
     with raises(PyrallisException):
-        obligate.parse(MainClass)
+        draccus.parse(MainClass)
 
 
 def test_super_nesting():
     @dataclass
     class Complicated:
-        x: List[
-            List[List[Dict[int, Tuple[int, float, str, List[float]]]]]
-        ] = field(default_factory=list)
+        x: List[List[List[Dict[int, Tuple[int, float, str, List[float]]]]]] = field(default_factory=list)
 
     c = Complicated()
     c.x = [[[{0: (2, 1.23, "bob", [1.2, 1.3])}]]]
-    assert obligate.decode(Complicated, obligate.encode(c)) == c
+    assert draccus.decode(Complicated, draccus.encode(c)) == c
+
+
 #
 #

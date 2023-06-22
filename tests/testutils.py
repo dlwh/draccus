@@ -1,24 +1,13 @@
 import shlex
-import shlex
 import string
 import sys
 from contextlib import contextmanager, suppress
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    cast,
-)
+from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, Type, TypeVar, cast
 
 import pytest
-import obligate
-from obligate import ParsingError
+
+import draccus
+from draccus import ParsingError
 
 
 xfail = pytest.mark.xfail
@@ -93,8 +82,8 @@ T = TypeVar("T")
 class TestSetup:
     @classmethod
     def setup(
-            cls: Type[Dataclass],
-            arguments: Optional[str] = "",
+        cls: Type[Dataclass],
+        arguments: Optional[str] = "",
     ) -> Dataclass:
         """Basic setup for a tests.
 
@@ -107,13 +96,13 @@ class TestSetup:
         """
         if arguments is not None:
             arguments = shlex.split(arguments)
-        cfg = obligate.parse(config_class=cls, args=arguments)
+        cfg = draccus.parse(config_class=cls, args=arguments)
         return cfg
 
     @classmethod
     def get_help_text(
-            cls,
-            multiple=False,
+        cls,
+        multiple=False,
     ) -> str:
         import contextlib
         from io import StringIO
@@ -148,18 +137,12 @@ def format_list_using_double_quotes(value_list: List[Any]) -> str:
 
 
 def format_lists_using_brackets(list_of_lists: List[List[Any]]) -> str:
-    return " ".join(
-        format_list_using_brackets(value_list) for value_list in list_of_lists
-    )
+    return " ".join(format_list_using_brackets(value_list) for value_list in list_of_lists)
 
 
 def format_lists_using_double_quotes(list_of_lists: List[List[Any]]) -> str:
-    return " ".join(
-        format_list_using_double_quotes(value_list) for value_list in list_of_lists
-    )
+    return " ".join(format_list_using_double_quotes(value_list) for value_list in list_of_lists)
 
 
 def format_lists_using_single_quotes(list_of_lists: List[List[Any]]) -> str:
-    return " ".join(
-        format_list_using_single_quotes(value_list) for value_list in list_of_lists
-    )
+    return " ".join(format_list_using_single_quotes(value_list) for value_list in list_of_lists)
