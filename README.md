@@ -1,4 +1,4 @@
-    <!--
+<!--
 <p align="center"><img src="https://raw.githubusercontent.com/eladrich/pyrallis/master/docs/pyrallis_logo.png" alt="logo" width="70%" /></p>
 
 <p align="center">
