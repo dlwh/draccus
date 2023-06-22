@@ -27,8 +27,8 @@ markdown_extensions:
 
 
 nav:
-  - Welcome to Pyrallis: "index.md"
-  - Pyrallis Step by Step: "step_by_step.md"
-  - The Pyrallis API: "api.md"
+  - Welcome to Draccus: "index.md"
+  - Draccus Step by Step: "step_by_step.md"
+  - The Draccus API: "api.md"
 #  - On Dataclasses and Typing: ""
 #  - Design Choices: ""
