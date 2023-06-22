@@ -9,13 +9,15 @@ def encode_ndarray(obj: np.ndarray) -> str:
     return obj.tostring()
 """
 import json
+import typing
 from argparse import Namespace
+from collections.abc import Mapping
 from dataclasses import fields, is_dataclass
 from enum import Enum
 from functools import singledispatch
 from logging import getLogger
 from os import PathLike
-from typing import Any, Dict, Hashable, List, Mapping, Tuple, Union
+from typing import Any, Dict, Hashable, List, Tuple, TypeVar, Union
 
 
 logger = getLogger(__name__)
@@ -81,7 +83,7 @@ def encode(obj: Any) -> Any:
 
 
 @encode.register(Mapping)
-def encode_dict(obj: Mapping) -> Union[Mapping[Any, Any], List[Tuple[Any, Any]]]:
+def encode_dict(obj: Mapping) -> Union[typing.Mapping[Any, Any], List[Tuple[Any, Any]]]:
     constructor = type(obj)
     result: Union[Mapping, List[Tuple[Any, Any]]] = constructor()
     for k, v in obj.items():
