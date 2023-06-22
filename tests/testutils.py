@@ -1,7 +1,8 @@
 import shlex
 import string
 import sys
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager, redirect_stderr, suppress
+from io import StringIO
 from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, Type, TypeVar, cast
 
 import pytest
@@ -27,10 +28,6 @@ Dataclass = TypeVar("Dataclass")
 def raises(exception=ParsingError, match=None, code: int = None):
     with pytest.raises(exception, match=match):
         yield
-
-
-from io import StringIO
-from contextlib import redirect_stderr
 
 
 @contextmanager
@@ -60,17 +57,17 @@ def raises_expected_n_args(n: int):
 
 @contextmanager
 def raises_unrecognized_args(*args: str):
-    with exits_and_writes_to_stderr(f"unrecognized arguments: " + " ".join(args or [])):
+    with exits_and_writes_to_stderr("unrecognized arguments: " + " ".join(args or [])):
         yield
 
 
-def assert_help_output_equals(actual: str, expected: str) -> bool:
+def assert_help_output_equals(actual: str, expected: str):
     # Replace the start with `prog`, since the tests runner might not always be
     # `pytest`, could also be __main__ when debugging with VSCode
     prog = sys.argv[0].split("/")[-1]
     if prog != "pytest":
         expected = expected.replace("usage: pytest", f"usage: {prog}")
-    remove = string.punctuation + string.whitespace
+    # remove = string.punctuation + string.whitespace
     actual_str = "".join(actual.split())
     expected_str = "".join(expected.split())
     assert actual_str == expected_str, f"{actual_str} != {expected_str}"
@@ -95,7 +92,7 @@ class TestSetup:
             {cls}} -- the class's type.
         """
         if arguments is not None:
-            arguments = shlex.split(arguments)
+            arguments = shlex.split(arguments)  # type: ignore
         cfg = draccus.parse(config_class=cls, args=arguments)
         return cfg
 

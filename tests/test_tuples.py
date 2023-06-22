@@ -1,6 +1,10 @@
 from dataclasses import dataclass
+from typing import Tuple
 
-from .testutils import *
+import pytest
+
+from draccus import ParsingError
+from tests.testutils import TestSetup
 
 
 def test_tuple_with_n_items_takes_only_n_values():
@@ -12,7 +16,7 @@ def test_tuple_with_n_items_takes_only_n_values():
     assert c.ints == (1, 5)
     c = Container.setup("--ints [4,8]")
     assert c.ints == (4, 8)
-    with raises(ParsingError):
+    with pytest.raises(ParsingError):
         c = Container.setup("--ints [4,5,6,7,8]")
 
 
