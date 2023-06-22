@@ -10,13 +10,12 @@ def encode_ndarray(obj: np.ndarray) -> str:
 """
 import json
 from argparse import Namespace
-from collections.abc import Mapping
 from dataclasses import fields, is_dataclass
 from enum import Enum
 from functools import singledispatch
 from logging import getLogger
 from os import PathLike
-from typing import Any, Dict, Hashable, List, Tuple, TypeVar, Union
+from typing import Any, Dict, Hashable, List, Mapping, Tuple, Union
 
 
 logger = getLogger(__name__)
