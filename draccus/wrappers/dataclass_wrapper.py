@@ -89,6 +89,9 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
     def register_actions(self, parser: _ActionsContainer) -> None:
         option_fields = [field for field in self.fields if field.arg_options]
 
+        for child in self._children:
+            child.register_actions(parser)
+
         if len(option_fields) > 0:
             # Only show groups with parameters
             group = parser.add_argument_group(title=self.title, description=self.description)

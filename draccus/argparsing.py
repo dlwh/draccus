@@ -44,8 +44,6 @@ class ArgumentParser(Generic[T]):
         # (a Dict[dest, [attribute, value]])
         self.constructor_arguments: Dict[str, Dict] = defaultdict(dict)
 
-        self._wrappers: List[DataclassWrapper] = []
-
         self.config_path = config_path
         self.config_class = config_class
 
@@ -70,12 +68,7 @@ class ArgumentParser(Generic[T]):
             dataclass = type(dataclass)
 
         new_wrapper = dataclass_wrapper_class(dataclass, prefix=prefix, default=default)
-        self._wrappers.append(new_wrapper)
-        self._wrappers += new_wrapper.descendants
-
-        for wrapper in self._wrappers:
-            logger.debug(f"Adding arguments for dataclass: {wrapper.dataclass} at destination {wrapper.dest}")
-            wrapper.register_actions(parser=self.parser)
+        new_wrapper.register_actions(parser=self.parser)
 
     def _assert_no_conflicts(self):
         """Checks for a field name that conflicts with utils.CONFIG_ARG"""
