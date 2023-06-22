@@ -9,16 +9,16 @@ T = TypeVar("T")
 
 logger = getLogger(__name__)
 
-_new_metavars: Dict[Type[T], Optional[str]] = {
+_new_metavars: Dict[Type, Optional[str]] = {
     # the 'primitive' types don't get a 'new' metavar.
     t: t.__name__
     for t in [str, float, int, bytes]
 }
 
 
-def log_results(fn: Callable[[Type], str]):
+def log_results(fn: Callable[[Type], T]) -> Callable[[Type], T]:
     @functools.wraps(fn)
-    def _wrapped(t: Type) -> str:
+    def _wrapped(t: Type) -> T:
         result = fn(t)
         logger.debug(f"Metavar for type {t}: {result}")
         return result
@@ -27,7 +27,7 @@ def log_results(fn: Callable[[Type], str]):
 
 
 @log_results
-def get_metavar(t: Type) -> str:
+def get_metavar(t: Type) -> Optional[str]:
     """Gets the metavar to be used for that type in help strings.
 
     This is crucial when using a `weird` auto-generated parsing functions for
@@ -40,7 +40,7 @@ def get_metavar(t: Type) -> str:
     """
     # TODO: Maybe we can create the name for each returned call, a bit like how
     # we dynamically create the parsing function itself?
-    new_name: str = getattr(t, "__name__", None)
+    new_name: Optional[str] = getattr(t, "__name__", None)
 
     optional = is_optional(t)
 
@@ -51,9 +51,9 @@ def get_metavar(t: Type) -> str:
         args = get_type_arguments(t)
         metavars: List[str] = []
         for type_arg in args:
-            if type_arg is type(None):
+            if type_arg is type(None):  # noqa: E721
                 continue
-            metavars.append(get_metavar(type_arg))
+            metavars.append(get_metavar(type_arg) or "<unknown>")
         metavar = "|".join(map(str, metavars))
         if optional:
             return f"[{metavar}]"
@@ -62,15 +62,15 @@ def get_metavar(t: Type) -> str:
     elif is_tuple(t):
         args = get_type_arguments(t)
         if not args:
-            return get_metavar(Any)
+            return get_metavar(Any)  # type: ignore
         logger.debug(f"Tuple args: {args}")
-        metavars: List[str] = []
+        metavars = []
         for arg in args:
             if arg is Ellipsis:
                 metavars.append(f"[{metavars[-1]}, ...]")
                 break
             else:
-                metavars.append(get_metavar(arg))
+                metavars.append(get_metavar(arg) or "<unknown>")
         return " ".join(metavars)
 
     return new_name

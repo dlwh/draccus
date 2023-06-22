@@ -16,7 +16,7 @@ from enum import Enum
 from functools import singledispatch
 from logging import getLogger
 from os import PathLike
-from typing import Any, Dict, Hashable, TypeVar
+from typing import Any, Dict, Hashable, List, Tuple, TypeVar, Union
 
 
 logger = getLogger(__name__)
@@ -82,17 +82,19 @@ def encode(obj: Any) -> Any:
 
 
 @encode.register(Mapping)
-def encode_dict(obj: Mapping) -> Dict[Any, Any]:
+def encode_dict(obj: Mapping) -> Union[Mapping[Any, Any], List[Tuple[Any, Any]]]:
     constructor = type(obj)
-    result = constructor()
+    result: Union[Mapping, List[Tuple[Any, Any]]] = constructor()
     for k, v in obj.items():
         k_ = encode(k)
         v_ = encode(v)
-        if isinstance(k_, Hashable):
-            result[k_] = v_
+        if isinstance(result, list):
+            result.append((k_, v_))
+        elif isinstance(k_, Hashable):
+            result[k_] = v_  # type: ignore
         else:
             # If the encoded key isn't "Hashable", then we store it as a list of tuples
-            if isinstance(result, dict):
+            if isinstance(result, Mapping):
                 result = list(result.items())
             result.append((k_, v_))
     return result

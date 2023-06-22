@@ -19,7 +19,7 @@ class DataclassWrapper(Wrapper[Dataclass]):
     def __init__(
         self,
         dataclass: Type[Dataclass],
-        name: Optional[str] = None,
+        name: Optional[str] = None,  # TODO(dlwh): I don't like this
         default: Union[Dataclass, Dict] = None,
         prefix: str = "",
         parent: "DataclassWrapper" = None,
@@ -45,7 +45,8 @@ class DataclassWrapper(Wrapper[Dataclass]):
         self._defaults: List[Dataclass] = []
 
         if default:
-            self.defaults = [default]
+            # TODO(dlwh): I don't like this
+            self.defaults = [default]  # type: ignore
 
         self.optional: bool = False
 
@@ -66,9 +67,10 @@ class DataclassWrapper(Wrapper[Dataclass]):
                 self._children.append(child_wrapper)
 
             elif utils.contains_dataclass_type_arg(field.type):
-                dataclass = utils.get_dataclass_type_arg(field.type)
+                # TODO(dlwh): I don't like this
+                dataclass = utils.get_dataclass_type_arg(field.type)  # type: ignore
                 name = field.name
-                child_wrapper = DataclassWrapper(dataclass, name, parent=self, _field=field, default=None)
+                child_wrapper = DataclassWrapper(dataclass, name, default=None, parent=self, _field=field)
                 child_wrapper.required = False
                 child_wrapper.optional = True
                 self._children.append(child_wrapper)
@@ -96,7 +98,8 @@ class DataclassWrapper(Wrapper[Dataclass]):
 
     @property
     def name(self) -> str:
-        return self._name
+        # TODO(dlwh): I don't like this
+        return self._name  # type: ignore
 
     @property
     def parent(self) -> Optional["DataclassWrapper"]:

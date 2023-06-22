@@ -5,6 +5,7 @@ import argparse
 import dataclasses
 import inspect
 import sys
+import typing
 import warnings
 from argparse import HelpFormatter, Namespace
 from collections import defaultdict
@@ -29,7 +30,7 @@ class ArgumentParser(Generic[T], argparse.ArgumentParser):
     def __init__(
         self,
         config_class: Type[T],
-        config_path: Optional[str] = None,
+        config_path: Optional[Union[Path, str]] = None,
         formatter_class: Type[HelpFormatter] = SimpleHelpFormatter,
         *args,
         **kwargs,
@@ -53,7 +54,7 @@ class ArgumentParser(Generic[T], argparse.ArgumentParser):
             type=str,
             help="Path for a config file to parse with draccus",
         )
-        self.set_dataclass(config_class)
+        self.set_dataclass(config_class)  # type: ignore
 
     def set_dataclass(
         self,
@@ -80,7 +81,8 @@ class ArgumentParser(Generic[T], argparse.ArgumentParser):
         if utils.CONFIG_ARG in [field.name for field in dataclasses.fields(self.config_class)]:
             raise PyrallisException(f"{utils.CONFIG_ARG} is a reserved word for draccus")
 
-    def parse_args(self, args=None, namespace=None) -> T:
+    @typing.no_type_check
+    def parse_args(self, args=None, namespace=None) -> T:  # type: ignore
         return super().parse_args(args, namespace)
 
     def parse_known_args(
@@ -106,8 +108,8 @@ class ArgumentParser(Generic[T], argparse.ArgumentParser):
                 action.type = str  # In practice, we want all processing to happen with yaml
         parsed_args, unparsed_args = super().parse_known_args(args, namespace)
 
-        parsed_args = self._postprocessing(parsed_args)
-        return parsed_args, unparsed_args
+        parsed_t = self._postprocessing(parsed_args)
+        return parsed_t, unparsed_args
 
     def print_help(self, file=None):
         return super().print_help(file)

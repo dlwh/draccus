@@ -1,6 +1,6 @@
 from abc import get_cache_token
 from dataclasses import dataclass
-from functools import _find_impl, update_wrapper
+from functools import _find_impl, update_wrapper  # type: ignore
 from typing import Callable, Optional
 
 
@@ -34,7 +34,7 @@ def withregistry(base_func):
                 impl = registry[cls]
             else:
                 try:
-                    impl: Optional[RegistryFunc] = _find_impl(cls, registry)
+                    impl = _find_impl(cls, registry)
                     if not impl.include_subclasses:
                         # Do not allow implicit inherited implementation without type
                         impl = None

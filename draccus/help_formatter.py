@@ -30,7 +30,7 @@ class SimpleHelpFormatter(
         _get_metavar = self._metavar_formatter(action, default_metavar)
         action_type = action.type
 
-        metavar = action.metavar or get_metavar(action_type)
+        metavar = action.metavar or get_metavar(action_type)  # type: ignore
         if metavar and not action.choices:
             result = metavar
         elif action.nargs is None:
@@ -46,6 +46,7 @@ class SimpleHelpFormatter(
         elif action.nargs == PARSER:
             result = "%s ..." % _get_metavar(1)
         else:
+            assert isinstance(action.nargs, int)
             formats = ["%s" for _ in range(action.nargs)]
             result = " ".join(formats) % _get_metavar(action.nargs)
 
@@ -57,7 +58,7 @@ class SimpleHelpFormatter(
     def _get_default_metavar_for_optional(self, action: argparse.Action):
         try:
             return super()._get_default_metavar_for_optional(action)
-        except BaseException as e:
+        except BaseException:
             logger.debug(f"Getting metavar for action with dest {action.dest}.")
             metavar = self._get_metavar_for_action(action)
             logger.debug(f"Result metavar: {metavar}")
@@ -66,14 +67,14 @@ class SimpleHelpFormatter(
     def _get_default_metavar_for_positional(self, action: argparse.Action):
         try:
             return super()._get_default_metavar_for_positional(action)
-        except BaseException as e:
+        except BaseException:
             logger.debug(f"Getting metavar for action with dest {action.dest}.")
             metavar = self._get_metavar_for_action(action)
             logger.debug(f"Result metavar: {metavar}")
             return metavar
 
     def _get_metavar_for_action(self, action: argparse.Action) -> str:
-        return self._get_metavar_for_type(action.type)
+        return self._get_metavar_for_type(action.type)  # type: ignore
 
     def _get_metavar_for_type(self, t: Type) -> str:
         return get_metavar(t) or str(t)

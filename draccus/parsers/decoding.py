@@ -1,11 +1,12 @@
 """ Functions for decoding dataclass fields from "raw" values (e.g. from json).
 """
+import typing
 from collections import OrderedDict
 from dataclasses import MISSING, Field, fields, is_dataclass
 from functools import lru_cache, partial
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 from draccus.parsers.registry_utils import RegistryFunc, withregistry
 from draccus.utils import (
@@ -32,7 +33,7 @@ Dataclass = TypeVar("Dataclass")
 
 @withregistry
 def decode(cls: Type[T], raw_value: Any) -> T:
-    return get_decoding_fn(cls)(raw_value)
+    return get_decoding_fn(cls)(raw_value)  # type: ignore
 
 
 # Dictionary mapping from types/type annotations to their decoding functions.
@@ -195,7 +196,7 @@ def get_decoding_fn(cls: Type[T]) -> Callable[[Any], T]:
 
 
 def decode_optional(t: Type[T]) -> Callable[[Optional[Any]], Optional[T]]:
-    decode = get_decoding_fn(t)
+    decode = get_decoding_fn(t)  # type: ignore
 
     def _decode_optional(val: Optional[Any]) -> Optional[T]:
         return val if val is None else decode(val)
@@ -218,6 +219,7 @@ def try_functions(*funcs: Callable[[Any], T]) -> Callable[[Any], Union[T, Any]]:
     return _try_functions
 
 
+@typing.no_type_check
 def decode_union(*types: Type[T]) -> Callable[[Any], Union[T, Any]]:
     types = list(types)
     optional = type(None) in types
@@ -231,7 +233,7 @@ def decode_union(*types: Type[T]) -> Callable[[Any], Union[T, Any]]:
 
 
 def decode_list(t: Type[T]) -> Callable[[List[Any]], List[T]]:
-    decode_item = get_decoding_fn(t)
+    decode_item = get_decoding_fn(t)  # type: ignore
 
     def _decode_list(val: List[Any]) -> List[T]:
         # assert type(val) == list
@@ -250,18 +252,18 @@ def decode_tuple(*tuple_item_types: Type[T]) -> Callable[[List[T]], Tuple[T, ...
         # TODO: This isn't necessary, the ellipsis will always be at index 1.
         ellipsis_index = tuple_item_types.index(Ellipsis)
         decoding_fn_index = ellipsis_index - 1
-        decoding_fn = get_decoding_fn(tuple_item_types[decoding_fn_index])
+        decoding_fn = get_decoding_fn(tuple_item_types[decoding_fn_index])  # type: ignore
         has_ellipsis = True
     elif len(tuple_item_types) == 0:
         has_ellipsis = True
         decoding_fn = no_op  # Functionality will be the same as Tuple[Any,...]
     else:
-        decoding_fns = [get_decoding_fn(t) for t in tuple_item_types]
+        decoding_fns = [get_decoding_fn(t) for t in tuple_item_types]  # type: ignore
 
     # Note, if there are more values than types in the tuple type, then the
     # last type is used.
 
-    def _decode_tuple(val: Tuple[Any, ...]) -> Tuple[T, ...]:
+    def _decode_tuple(val: typing.Sequence[Any]) -> Tuple[T, ...]:
         if val is None:
             raise TypeError("Value must not be None for conversion to a tuple")
         if has_ellipsis:
@@ -288,11 +290,12 @@ def decode_set(item_type: Type[T]) -> Callable[[List[T]], Set[T]]:
 
 def decode_dict(K_: Type[K], V_: Type[V]) -> Callable[[List[Tuple[Any, Any]]], Dict[K, V]]:
     """Creates a decoding function for a dict type. Works with OrderedDict too."""
-    decode_k = get_decoding_fn(K_)
-    decode_v = get_decoding_fn(V_)
+    decode_k = get_decoding_fn(K_)  # type: ignore
+    decode_v: Callable[[Any], V] = get_decoding_fn(V_)  # type: ignore
 
     def _decode_dict(val: Union[Dict[Any, Any], List[Tuple[Any, Any]]]) -> Dict[K, V]:
         result: Dict[K, V] = {}
+        items: Iterable[Tuple[Any, Any]]
         if isinstance(val, list):
             result = OrderedDict()
             items = val
@@ -318,7 +321,7 @@ def no_op(v: T) -> T:
 
 def try_constructor(t: Type[T]) -> Callable[[Any], Union[T, Any]]:
     """Tries to use the type as a constructor. If that fails, returns the value as-is."""
-    return try_functions(lambda val: t(**val), lambda val: t(val))
+    return try_functions(lambda val: t(**val), lambda val: t(val))  # type: ignore
 
 
 decode.register(Path, Path)

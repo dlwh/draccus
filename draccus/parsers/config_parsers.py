@@ -29,13 +29,13 @@ class ParserEnum(Enum):
 class YAMLParser(Parser):
     @staticmethod
     def parse_string(s):
-        import yaml
+        import yaml  # type: ignore
 
         return yaml.safe_load(s)
 
     @staticmethod
     def load_config(stream):
-        import yaml
+        import yaml  # type: ignore
 
         return yaml.full_load(stream)
 
@@ -75,7 +75,7 @@ class JSONParser(Parser):
 class TOMLParser(Parser):
     @staticmethod
     def parse_string(s):
-        import toml
+        import toml  # type: ignore
 
         try:
             return toml.loads(f"val = {s}")["val"]

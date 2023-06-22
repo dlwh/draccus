@@ -17,6 +17,7 @@ from typing import (
     Mapping,
     MutableMapping,
     Optional,
+    Sequence,
     Set,
     Tuple,
     Type,
@@ -31,14 +32,14 @@ try:
     from typing import get_args
 except ImportError:
 
-    def get_args(some_type: Type) -> Tuple[Type, ...]:
+    def get_args(some_type: Type) -> Tuple[Type, ...]:  # type: ignore
         return getattr(some_type, "__args__", ())
 
 
 try:
-    from typing import get_origin
+    from typing import get_origin  # type: ignore
 except ImportError:
-    from typing_inspect import get_origin
+    from typing_inspect import get_origin  # type: ignore
 
 logger = getLogger(__name__)
 
@@ -58,7 +59,7 @@ class ParsingError(PyrallisException):
     pass
 
 
-def get_item_type(container_type: Type[Container[T]]) -> T:
+def get_item_type(container_type: Type[Container[T]]) -> Type[T]:
     """Returns the `type` of the items in the provided container `type`.
 
     When no type annotation is found, or no item type is found, returns
@@ -77,16 +78,17 @@ def get_item_type(container_type: Type[Container[T]]) -> T:
         Mapping,
         MutableMapping,
     }:
+        # TODO(dlwh): I don't like this
         # the built-in `list` and `tuple` types don't have annotations for their item types.
-        return Any
+        return Any  # type: ignore
     type_arguments = getattr(container_type, "__args__", None)
     if type_arguments:
         return type_arguments[0]
     else:
-        return Any
+        return Any  # type: ignore
 
 
-def _mro(t: Type) -> List[Type]:
+def _mro(t: Type) -> Sequence[Type]:
     # TODO: This is mostly used in 'is_tuple' and such, and should be replaced with
     # either the built-in 'get_origin' from typing, or from typing-inspect.
     if t is None:
@@ -266,12 +268,12 @@ def flatten(d, parent_key=None, sep="."):
 
 
 def deflatten(d: Dict[str, Any], sep: str = "."):
-    deflat_d = {}
+    deflat_d: Dict[str, Any] = {}
     for key in d:
         key_parts = key.split(sep)
         curr_d = deflat_d
         for inner_key in key_parts[:-1]:
-            if not inner_key in curr_d:
+            if inner_key not in curr_d:
                 curr_d[inner_key] = {}
             curr_d = curr_d[inner_key]
         curr_d[key_parts[-1]] = d[key]

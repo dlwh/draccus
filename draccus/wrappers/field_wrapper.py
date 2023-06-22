@@ -108,7 +108,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         _arg_options["type"] = self.type
         try:
             _arg_options["type"].__name__ = self.type.__repr__().replace("typing.", "")
-        except Exception as e:
+        except Exception:
             # Only to prettify printing, if fails just continue
             pass
 
@@ -298,7 +298,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         return utils.get_type_arguments(self.type)
 
     @property
-    def parent(self) -> "DataclassWrapper":
+    def parent(self):
         return self._parent
 
 
