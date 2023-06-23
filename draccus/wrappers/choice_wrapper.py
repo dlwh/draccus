@@ -128,7 +128,7 @@ class ChoiceWrapper(Wrapper):
 
 class _SuppressingArgumentGroup(_ArgumentGroup):
     def __init__(self, container, *args, **kwargs):
-        kwargs = {**kwargs, "conflict_handler": "ignore"}
+        kwargs = {**kwargs, "conflict_handler": "resolve"}
         super().__init__(container, *args, **kwargs)
 
     def add_argument(self, *args, **kwargs):

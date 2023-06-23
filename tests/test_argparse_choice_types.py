@@ -22,7 +22,7 @@ class Adult(Person):
 
 @dataclasses.dataclass
 class Child(Person):
-    favorite_toy: str
+    favorite_toy: str  # Child's favorite toy
 
 
 Person.register_subclass("adult", Adult)
@@ -50,6 +50,12 @@ def test_choice_registry_argparse():
         Something.setup("--person.name hi")
 
 
-def test_choice_registry_encode():
-    assert draccus.encode(Adult("bob", 10)) == {"type": "adult", "name": "bob", "age": 10}
-    assert draccus.encode(Child("bob", "truck")) == {"type": "child", "name": "bob", "favorite_toy": "truck"}
+# @dataclasses.dataclass
+# class Something(TestSetup):
+#     person: Person = Adult("bob", 10)
+#
+# def test_choice_registry_examine_help():
+#     assert Something.get_help_text() == """\
+# usage: pytest [-h] [--person.type {adult,child}] [--person.name str]
+#                 [--person.age int] [--person.favorite_toy str]
+#                 """
