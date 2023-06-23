@@ -2,6 +2,27 @@
 A Choice Type aka "Sum Type" is a type that can be one of several types. Typically this is through subtyping,
 but could be a tagged union or something else.
 
+Typically you'll write a config like this:
+
+```yaml
+model:
+    type: gpt
+    pdrop: 0.1
+    layers: 3
+```
+
+with a class hierarchy that looks like this:
+
+```python
+class ModelConfig(ChoiceRegistry):
+    pass
+
+@ModelConfig.register_subclass("gpt")
+class GPTConfig(ModelConfig):
+    pdrop: float
+    layers: int
+```
+
 In Draccus, we allow two different kinds of choice types:
 * "Closed" choice types, where the set of possible types is fixed before argument parsing/configuration.
 * "Open" choice types, where the set of possible types is not fixed.
@@ -100,19 +121,5 @@ class ChoiceRegistry(ChoiceType):
         cls._choice_registry[name] = choice_type
         return choice_type
 
-
-# def choice_registry(cls: Type[T]) -> Type[T]:
-#     """Convenience decorator for registering a class as an open choice type. Adds the necessary class variables
-#     and methods to the class for it to be a valid choice type. Also adds a "register_choice_type" method
-#     to the class for registering subclasses.
-#     """
-#
-#     cls._choice_registry: ClassVar[Dict[str, Any]] = {}
-#     cls.get_choice_class = ChoiceRegistry.get_choice_class
-#     cls.get_known_choices = ChoiceRegistry.get_known_choices
-#     cls.is_open_choice = ChoiceRegistry.is_open_choice
-#     cls.register_choice_type = ChoiceRegistry.register_choice_type
-#
-#     return cls
 
 # TODO: add plugin registry
