@@ -8,8 +8,8 @@ from typing import Generic, List, Optional, Type
 from draccus.utils import T
 
 
-# We can think of a Wrapper as a node in a tree, where the root is the
-# DataclassWrapper for the root dataclass, and the leaves are the FieldWrappers.
+# We can think of a Wrapper as a node in a tree, where the root is the DataclassWrapper for the root dataclass, and the
+# leaves are the FieldWrappers. (So internal nodes are DataclassWrappers, for now.)
 
 
 class Wrapper(Generic[T], ABC):
