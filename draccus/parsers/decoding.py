@@ -1,5 +1,6 @@
 """ Functions for decoding dataclass fields from "raw" values (e.g. from json).
 """
+import inspect
 import typing
 from collections import OrderedDict
 from dataclasses import MISSING, Field, fields, is_dataclass
@@ -170,7 +171,7 @@ def get_decoding_fn(cls: Type[T]) -> Callable[[Any], T]:
         else:
             return cached_func.func
 
-    elif issubclass(cls, ChoiceType):
+    elif inspect.isclass(cls) and issubclass(cls, ChoiceType):
         return partial(decode_choice_class, cls)
 
     elif is_dataclass(cls):
