@@ -78,7 +78,7 @@ def encode(obj: Any) -> Any:
         raise e
 
 
-def encode_dataclass(obj):
+def encode_dataclass(obj: Any):
     d: Dict[str, Any] = dict()
     for field in fields(obj):
         value = getattr(obj, field.name)
