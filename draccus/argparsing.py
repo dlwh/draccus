@@ -12,7 +12,7 @@ from functools import wraps
 from gettext import gettext
 from logging import getLogger
 from pathlib import Path
-from typing import Dict, Generic, List, Optional, Sequence, Text, Type, TypeVar, Union
+from typing import Dict, Generic, Optional, Sequence, Text, Type, TypeVar, Union
 
 from draccus import cfgparsing, utils
 from draccus.help_formatter import SimpleHelpFormatter
