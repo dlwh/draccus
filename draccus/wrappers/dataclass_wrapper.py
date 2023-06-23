@@ -1,4 +1,3 @@
-import argparse
 import dataclasses
 from argparse import _ActionsContainer
 from dataclasses import _MISSING_TYPE
@@ -8,7 +7,8 @@ from typing import Dict, List, Optional, Type, Union, cast
 from draccus.utils import Dataclass, DataclassType
 
 from .. import utils
-from ..parsers.decoding import get_decoding_fn, has_custom_decoder
+
+# from ..parsers.decoding import get_decoding_fn, has_custom_decoder
 from . import docstring
 from .field_wrapper import FieldWrapper
 from .wrapper import Wrapper
@@ -21,7 +21,7 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
     def __init__(
         self,
         dataclass: Type[Dataclass],
-        name: Optional[str] = None,  # TODO(dlwh): I don't like this
+        name: Optional[str] = None,
         # TODO(dlwh): they aren't using the defaults?
         default: Optional[Union[Dataclass, Dict]] = None,
         prefix: str = "",
@@ -58,7 +58,7 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
             # elif has_custom_decoder(field.type):
             #     field_wrapper = field_wrapper_class(field, parent=self, prefix=self.prefix)
             #     logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
-            #     self.fields.append(field_wrapper)
+            #     self._children.append(field_wrapper)
 
             elif utils.is_tuple_or_list_of_dataclasses(field.type):
                 raise NotImplementedError(
@@ -85,7 +85,6 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
                 # a normal attribute
                 field_wrapper = field_wrapper_class(field, parent=self, prefix=self.prefix)
                 logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
-                # self.fields.append(field_wrapper)
                 self._children.append(field_wrapper)
 
     def register_actions(self, parser: _ActionsContainer) -> None:
