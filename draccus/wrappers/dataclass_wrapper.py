@@ -21,6 +21,7 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
         self,
         dataclass: Type[Dataclass],
         name: Optional[str] = None,  # TODO(dlwh): I don't like this
+        # TODO(dlwh): they aren't using the defaults?
         default: Union[Dataclass, Dict] = None,
         prefix: str = "",
         parent: "DataclassWrapper" = None,
@@ -175,9 +176,3 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
             field.required = value
         for child_wrapper in self._children:
             child_wrapper.required = value
-
-    @property
-    def descendants(self):
-        for child in self._children:
-            yield child
-            yield from child.descendants

@@ -5,7 +5,6 @@ import argparse
 import dataclasses
 import inspect
 import sys
-import typing
 import warnings
 from argparse import HelpFormatter, Namespace
 from collections import defaultdict
