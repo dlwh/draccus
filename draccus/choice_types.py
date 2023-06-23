@@ -15,7 +15,11 @@ other methods.
 We may add support for Unions.
 """
 
-from typing import Any, ClassVar, Dict, Protocol, runtime_checkable
+import functools
+from typing import Any, Callable, ClassVar, Dict, Optional, Protocol, Type, TypeVar, overload, runtime_checkable
+
+
+T = TypeVar("T")
 
 
 CHOICE_TYPE_KEY = "type"
@@ -41,7 +45,7 @@ class ChoiceType(Protocol):
 
 
 class ChoiceRegistry(ChoiceType):
-    _choice_registry: ClassVar[Dict[str, Any]] = {}
+    _choice_registry: ClassVar[Dict[str, Type]] = {}
 
     @classmethod
     def get_choice_class(cls, name: str) -> Any:
@@ -55,8 +59,20 @@ class ChoiceRegistry(ChoiceType):
     def is_open_choice(cls) -> bool:
         return False
 
+    @overload
     @classmethod
-    def register_choice_type(cls, name: str, choice_type: Any) -> None:
+    def register_choice_type(cls, name: str, choice_type: Type) -> Type[T]:
+        ...
+
+    @overload
+    @classmethod
+    def register_choice_type(cls, name: str) -> Callable[[Type[T]], Type[T]]:
+        ...
+
+    @classmethod
+    def register_choice_type(cls, name: str, choice_type: Optional[Type[T]] = None):
+        if choice_type is None:
+            return functools.partial(cls.register_choice_type, name)
         if name in cls._choice_registry:
             other_choice_type = cls._choice_registry[name]
             if other_choice_type != choice_type:
@@ -66,6 +82,7 @@ class ChoiceRegistry(ChoiceType):
                 )
 
         cls._choice_registry[name] = choice_type
+        return choice_type
 
 
 # def choice_registry(cls: Type[T]) -> Type[T]:
