@@ -49,10 +49,6 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         self._results: Dict[str, Any] = {}
 
     @property
-    def wrapped(self) -> dataclasses.Field:
-        return self.field
-
-    @property
     def arg_options(self) -> Dict[str, Any]:
         """Dictionary of values to be passed to the `add_argument` method.
 

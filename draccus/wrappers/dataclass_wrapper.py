@@ -83,10 +83,6 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
                 logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
                 self.fields.append(field_wrapper)
 
-    @property
-    def wrapped(self):
-        return self.dataclass
-
     def register_actions(self, parser: _ActionsContainer) -> None:
         option_fields = [field for field in self.fields if field.arg_options]
 

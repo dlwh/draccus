@@ -14,11 +14,6 @@ from draccus.utils import T
 
 class Wrapper(Generic[T], ABC):
     @property
-    @abstractmethod
-    def wrapped(self) -> T:
-        pass
-
-    @property
     def dest(self) -> str:
         """Where the attribute will be stored in the Namespace."""
         if self.parent is None:
