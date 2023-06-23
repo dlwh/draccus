@@ -12,7 +12,7 @@ from .testutils import TestSetup
 
 @dataclasses.dataclass
 class Person(ChoiceRegistry):
-    name: str
+    name: str  # Person's name
 
 
 @dataclasses.dataclass
@@ -50,12 +50,16 @@ def test_choice_registry_argparse():
         Something.setup("--person.name hi")
 
 
-# @dataclasses.dataclass
-# class Something(TestSetup):
-#     person: Person = Adult("bob", 10)
-#
-# def test_choice_registry_examine_help():
-#     assert Something.get_help_text() == """\
-# usage: pytest [-h] [--person.type {adult,child}] [--person.name str]
-#                 [--person.age int] [--person.favorite_toy str]
-#                 """
+@dataclasses.dataclass
+class Something(TestSetup):
+    person: Person = Adult("bob", 10)
+
+
+def test_choice_registry_examine_help():
+    assert (
+        Something.get_help_text()
+        == """\
+usage: pytest [-h] [--person.type {adult,child}] [--person.name str]
+                [--person.age int] [--person.favorite_toy str]
+                """
+    )
