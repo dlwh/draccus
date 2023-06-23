@@ -112,6 +112,17 @@ def decode_field(field: Field, raw_value: Any) -> Any:
     return decode(field_type, raw_value)
 
 
+def has_custom_decoder(cls: Type[T]):
+    cached_func: RegistryFunc = decode.dispatch(cls)
+
+    if cached_func is not None:
+        # If supports subclasses, pass the actual type
+        if cached_func.include_subclasses:
+            return partial(cached_func.func, cls)
+        else:
+            return cached_func.func
+
+
 @lru_cache(maxsize=100)
 def get_decoding_fn(cls: Type[T]) -> Callable[[Any], T]:
     """Fetches/Creates a decoding function for the given type annotation.

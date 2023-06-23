@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Type, Union, cast
 from draccus.utils import Dataclass, DataclassType
 
 from .. import utils
+from ..parsers.decoding import get_decoding_fn, has_custom_decoder
 from . import docstring
 from .field_wrapper import FieldWrapper
 from .wrapper import Wrapper
@@ -33,11 +34,10 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
         self.default = default
         self.prefix = prefix
 
-        self.fields: List[FieldWrapper] = []
         self._required: bool = False
         self._explicit: bool = False
         self._dest: str = ""
-        self._children: List[DataclassWrapper] = []
+        self._children: List[Wrapper] = []
         self._parent = parent
         # the field of the parent, which contains this child dataclass.
         self._field = _field
@@ -55,12 +55,16 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
             if not field.init:
                 continue
 
+            # elif has_custom_decoder(field.type):
+            #     field_wrapper = field_wrapper_class(field, parent=self, prefix=self.prefix)
+            #     logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
+            #     self.fields.append(field_wrapper)
+
             elif utils.is_tuple_or_list_of_dataclasses(field.type):
                 raise NotImplementedError(
                     f"Field {field.name} is of type {field.type}, which isn't "
                     "supported yet. (container of a dataclass type)"
                 )
-            # TODO: special case custom handlers here
 
             elif dataclasses.is_dataclass(field.type):
                 # handle a nested dataclass attribute
@@ -81,19 +85,27 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
                 # a normal attribute
                 field_wrapper = field_wrapper_class(field, parent=self, prefix=self.prefix)
                 logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
-                self.fields.append(field_wrapper)
+                # self.fields.append(field_wrapper)
+                self._children.append(field_wrapper)
 
     def register_actions(self, parser: _ActionsContainer) -> None:
-        option_fields = [field for field in self.fields if field.arg_options]
+        # option_fields = [field for field in self.fields if field.arg_options]
+
+        group: Optional[_ActionsContainer] = None
 
         for child in self._children:
-            child.register_actions(parser)
+            if isinstance(child, FieldWrapper) and child.arg_options:
+                if group is None:
+                    group = parser.add_argument_group(title=self.title, description=self.description)
+                child.register_actions(group)
+            else:
+                child.register_actions(parser)
 
-        if len(option_fields) > 0:
-            # Only show groups with parameters
-            group = parser.add_argument_group(title=self.title, description=self.description)
-            for wrapped_field in option_fields:
-                wrapped_field.register_actions(group)
+        # if len(option_fields) > 0:
+        #     # Only show groups with parameters
+        #     group = parser.add_argument_group(title=self.title, description=self.description)
+        #     for wrapped_field in option_fields:
+        #         wrapped_field.register_actions(group)
 
     @property
     def name(self) -> str:
@@ -168,7 +180,5 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
     @required.setter
     def required(self, value: bool):
         self._required = value
-        for field in self.fields:
-            field.required = value
         for child_wrapper in self._children:
             child_wrapper.required = value
