@@ -15,6 +15,8 @@ logger = getLogger(__name__)
 
 class FieldWrapper(Wrapper[dataclasses.Field]):
     """
+    FieldWrapper represents a single "atomic" field of a dataclass. That is, a field
+    that does not have any subfields (that we attempt to parse).
     The FieldWrapper is essentially a reified call to
      the `add_argument(*option_strings, **arg_options)` function of the
     `argparse._ArgumentGroup`. Typically this is called by DataclassWrapper.
