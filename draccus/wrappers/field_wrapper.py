@@ -27,12 +27,13 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
     The `field` argument is the actually wrapped `dataclasses.Field` instance.
     """
 
-    field: dataclasses.Field
+    @property
+    def field(self) -> dataclasses.Field:
+        return self._field
 
-    def __init__(self, field: dataclasses.Field, parent: Any = None, prefix: str = ""):
-        self.field = field
-        self.prefix: str = prefix
-        self._parent: Any = parent
+    def __init__(self, field: dataclasses.Field, parent: Optional[Wrapper] = None):
+        self._field = field
+        self._parent: Optional[Wrapper] = parent
         # Holders used to 'cache' the properties.
         # (could've used cached_property with Python 3.8).
         self._option_strings: Optional[Set[str]] = None
@@ -147,8 +148,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         argument can be passed by using dashes ("-") instead. This also includes
         aliases.
         - If an alias contained leading dashes, either single or double, the
-        same number of dashes will be used, even in the case where a prefix is
-        added.
+        same number of dashes will be used
 
         For an illustration of this, see the aliases example.
 

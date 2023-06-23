@@ -24,15 +24,12 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
         name: Optional[str] = None,
         # TODO(dlwh): they aren't using the defaults?
         default: Optional[Union[Dataclass, Dict]] = None,
-        prefix: str = "",
-        parent: Optional["DataclassWrapper"] = None,
+        parent: Optional["Wrapper"] = None,
         _field: Optional[dataclasses.Field] = None,
-        field_wrapper_class: Type[FieldWrapper] = FieldWrapper,
     ):
         self.dataclass = dataclass
         self._name = name
         self.default = default
-        self.prefix = prefix
 
         self._required: bool = False
         self._explicit: bool = False
@@ -52,40 +49,9 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
         self.optional: bool = False
 
         for field in dataclasses.fields(self.dataclass):  # type: ignore
-            if not field.init:
-                continue
-
-            # elif has_custom_decoder(field.type):
-            #     field_wrapper = field_wrapper_class(field, parent=self, prefix=self.prefix)
-            #     logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
-            #     self._children.append(field_wrapper)
-
-            elif utils.is_tuple_or_list_of_dataclasses(field.type):
-                raise NotImplementedError(
-                    f"Field {field.name} is of type {field.type}, which isn't "
-                    "supported yet. (container of a dataclass type)"
-                )
-
-            elif dataclasses.is_dataclass(field.type):
-                # handle a nested dataclass attribute
-                dataclass, name = (cast(DataclassType, field.type)), field.name
-                child_wrapper = DataclassWrapper(dataclass, name, parent=self, _field=field)
-                self._children.append(child_wrapper)
-
-            elif utils.contains_dataclass_type_arg(field.type):
-                # TODO(dlwh): I don't like this
-                dataclass = utils.get_dataclass_type_arg(field.type)  # type: ignore
-                name = field.name
-                child_wrapper = DataclassWrapper(dataclass, name, default=None, parent=self, _field=field)
-                child_wrapper.required = False
-                child_wrapper.optional = True
-                self._children.append(child_wrapper)
-
-            else:
-                # a normal attribute
-                field_wrapper = field_wrapper_class(field, parent=self, prefix=self.prefix)
-                logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
-                self._children.append(field_wrapper)
+            child = _wrap_field(self, field)
+            if child is not None:
+                self._children.append(child)
 
     def register_actions(self, parser: _ActionsContainer) -> None:
         group = parser.add_argument_group(title=self.title, description=self.description)
@@ -99,7 +65,7 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
         return self._name  # type: ignore
 
     @property
-    def parent(self) -> Optional["DataclassWrapper"]:
+    def parent(self) -> Optional["Wrapper"]:
         return self._parent
 
     # @property
@@ -146,7 +112,7 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
     @property
     def description(self) -> str:
         if self.parent and self._field:
-            doc = docstring.get_attribute_docstring(self.parent.dataclass, self._field.name)
+            doc = docstring.get_attribute_docstring(self.parent.type, self._field.name)
             if doc is not None:
                 if doc.docstring_below:
                     return doc.docstring_below
@@ -168,3 +134,48 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
         self._required = value
         for child_wrapper in self._children:
             child_wrapper.required = value
+
+    @property
+    def field(self) -> Optional[dataclasses.Field]:
+        return self._field
+
+    @property
+    def type(self) -> Type[Dataclass]:
+        return self.dataclass
+
+
+def _wrap_field(parent: Optional[Wrapper], field: dataclasses.Field) -> Optional[Wrapper]:
+    if not field.init:
+        return None
+
+    # elif has_custom_decoder(field.type):
+    #     field_wrapper = field_wrapper_class(field, parent=self, prefix=self.prefix)
+    #     logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
+    #     return field_wrapper
+
+    elif utils.is_tuple_or_list_of_dataclasses(field.type):
+        raise NotImplementedError(
+            f"Field {field.name} is of type {field.type}, which isn't supported yet. (container of a dataclass type)"
+        )
+
+    elif dataclasses.is_dataclass(field.type):
+        # handle a nested dataclass attribute
+        dataclass, name = (cast(DataclassType, field.type)), field.name
+        child_wrapper = DataclassWrapper(dataclass, name, parent=parent, _field=field)
+        return child_wrapper
+
+    elif utils.contains_dataclass_type_arg(field.type):
+        # TODO(dlwh): I don't like this
+        dataclass = utils.get_dataclass_type_arg(field.type)  # type: ignore
+        name = field.name
+        child_wrapper = DataclassWrapper(dataclass, name, default=None, parent=parent, _field=field)
+        child_wrapper.required = False
+        child_wrapper.optional = True
+        return child_wrapper
+
+    else:
+        # a normal attribute
+        field_wrapper = FieldWrapper(field, parent=parent)
+        logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
+        # self._children.append(field_wrapper)
+        return field_wrapper

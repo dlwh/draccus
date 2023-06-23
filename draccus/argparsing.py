@@ -57,7 +57,6 @@ class ArgumentParser(Generic[T]):
     def _set_dataclass(
         self,
         dataclass: Union[Type[Dataclass], Dataclass],
-        prefix: str = "",
         default: Optional[Union[Dataclass, Dict]] = None,
         dataclass_wrapper_class: Type[DataclassWrapper] = DataclassWrapper,
     ):
@@ -66,7 +65,7 @@ class ArgumentParser(Generic[T]):
             default = dataclass if default is None else default
             dataclass = type(dataclass)
 
-        new_wrapper = dataclass_wrapper_class(dataclass, prefix=prefix, default=default)
+        new_wrapper = dataclass_wrapper_class(dataclass, default=default)
         new_wrapper.register_actions(parser=self.parser)
 
     def _assert_no_conflicts(self):

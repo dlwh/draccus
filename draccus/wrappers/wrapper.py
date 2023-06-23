@@ -3,7 +3,7 @@ import abc
 from abc import ABC, abstractmethod
 from argparse import _ActionsContainer
 from dataclasses import Field
-from typing import Generic, List, Optional
+from typing import Generic, List, Optional, Type
 
 from draccus.utils import T
 
@@ -63,4 +63,14 @@ class Wrapper(Generic[T], ABC):
     @required.setter
     @abstractmethod
     def required(self, value: bool):
+        pass
+
+    @property
+    @abstractmethod
+    def field(self) -> Optional[Field]:
+        pass
+
+    @property
+    @abstractmethod
+    def type(self) -> Type:
         pass
