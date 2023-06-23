@@ -98,18 +98,18 @@ class ChoiceRegistry(ChoiceType):
 
     @overload
     @classmethod
-    def register_choice_type(cls, name: str, choice_type: Type) -> Type[T]:
+    def register_subclass(cls, name: str, choice_type: Type) -> Type[T]:
         ...
 
     @overload
     @classmethod
-    def register_choice_type(cls, name: str) -> Callable[[Type[T]], Type[T]]:
+    def register_subclass(cls, name: str) -> Callable[[Type[T]], Type[T]]:
         ...
 
     @classmethod
-    def register_choice_type(cls, name: str, choice_type: Optional[Type[T]] = None):
+    def register_subclass(cls, name: str, choice_type: Optional[Type[T]] = None):
         if choice_type is None:
-            return functools.partial(cls.register_choice_type, name)
+            return functools.partial(cls.register_subclass, name)
         if name in cls._choice_registry:
             other_choice_type = cls._choice_registry[name]
             if other_choice_type != choice_type:

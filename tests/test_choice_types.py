@@ -22,8 +22,8 @@ class Child(Person):
     favorite_toy: str
 
 
-Person.register_choice_type("adult", Adult)
-Person.register_choice_type("child", Child)
+Person.register_subclass("adult", Adult)
+Person.register_subclass("child", Child)
 
 
 def test_choice_registry_decode():
