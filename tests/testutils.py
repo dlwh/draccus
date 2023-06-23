@@ -25,7 +25,7 @@ Dataclass = TypeVar("Dataclass")
 
 
 @contextmanager
-def raises(exception=ParsingError, match=None, code: int = None):
+def raises(exception=ParsingError, match=None, code: Optional[int] = None):
     with pytest.raises(exception, match=match):
         yield
 
