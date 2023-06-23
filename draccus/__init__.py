@@ -3,6 +3,7 @@ __version__ = "0.3.1"
 from . import utils, wrappers
 from .argparsing import parse, wrap
 from .cfgparsing import dump, load
+from .choice_types import CHOICE_TYPE_KEY, ChoiceRegistry, ChoiceType
 from .fields import field
 from .options import ConfigType, Options, config_type
 from .parsers.decoding import decode

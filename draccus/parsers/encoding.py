@@ -19,6 +19,8 @@ from logging import getLogger
 from os import PathLike
 from typing import Any, Dict, Hashable, List, Tuple, TypeVar, Union
 
+from draccus.choice_types import CHOICE_TYPE_KEY, ChoiceType
+
 
 logger = getLogger(__name__)
 
@@ -63,16 +65,10 @@ def encode(obj: T) -> T: ...
 def encode(obj: Any) -> Any:
     """Encodes an object into a json/yaml-compatible primitive type."""
     try:
-        if is_dataclass(obj):
-            d: Dict[str, Any] = dict()
-            for field in fields(obj):
-                value = getattr(obj, field.name)
-                try:
-                    d[field.name] = encode(value)
-                except TypeError as e:
-                    logger.error(f"Unable to encode field {field.name}: {e}")
-                    raise e
-            return d
+        if isinstance(obj, ChoiceType):
+            return encode_choice(obj)
+        elif is_dataclass(obj):
+            return encode_dataclass(obj)
         elif obj is None:
             return None
         else:
@@ -80,6 +76,29 @@ def encode(obj: Any) -> Any:
     except Exception as e:
         logger.debug(f"Cannot encode object {obj}: {e}")
         raise e
+
+
+def encode_dataclass(obj):
+    d: Dict[str, Any] = dict()
+    for field in fields(obj):
+        value = getattr(obj, field.name)
+        try:
+            d[field.name] = encode(value)
+        except TypeError as e:
+            logger.error(f"Unable to encode field {field.name}: {e}")
+            raise e
+    return d
+
+
+def encode_choice(obj: ChoiceType):
+    encoded = encode_dataclass(obj)
+
+    if not isinstance(encoded, dict):
+        raise Exception(f"Choice Class {obj} is not encoded as a dict: {encoded}")
+
+    encoded = {CHOICE_TYPE_KEY: obj.get_choice_name(type(obj)), **encoded}
+
+    return encoded
 
 
 @encode.register(Mapping)

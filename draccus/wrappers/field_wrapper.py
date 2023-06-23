@@ -1,6 +1,7 @@
 import argparse
 import dataclasses
 import inspect
+from argparse import _ActionsContainer
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
@@ -14,11 +15,11 @@ logger = getLogger(__name__)
 
 class FieldWrapper(Wrapper[dataclasses.Field]):
     """
-    The FieldWrapper class acts a bit like an 'argparse.Action' class, which
-    essentially just creates the `option_strings` and `arg_options` that get
-    passed to the `add_argument(*option_strings, **arg_options)` function of the
-    `argparse._ArgumentGroup` (in this case represented by the `parent`
-    attribute, an instance of the class `DataclassWrapper`).
+    FieldWrapper represents a single "atomic" field of a dataclass. That is, a field
+    that does not have any subfields (that we attempt to parse).
+    The FieldWrapper is essentially a reified call to
+     the `add_argument(*option_strings, **arg_options)` function of the
+    `argparse._ArgumentGroup`. Typically this is called by DataclassWrapper.
 
     The `option_strings`, `required`, `help`, `default`, etc.
     attributes just autogenerate the argument of the same name of the
@@ -28,12 +29,13 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
     The `field` argument is the actually wrapped `dataclasses.Field` instance.
     """
 
-    def __init__(self, field: dataclasses.Field, parent: Any = None, prefix: str = ""):
-        super().__init__(wrapped=field, name=field.name)
+    @property
+    def field(self) -> dataclasses.Field:
+        return self._field
 
-        self.field: dataclasses.Field = field
-        self.prefix: str = prefix
-        self._parent: Any = parent
+    def __init__(self, field: dataclasses.Field, parent: Optional[Wrapper] = None):
+        self._field = field
+        self._parent: Optional[Wrapper] = parent
         # Holders used to 'cache' the properties.
         # (could've used cached_property with Python 3.8).
         self._option_strings: Optional[Set[str]] = None
@@ -148,8 +150,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         argument can be passed by using dashes ("-") instead. This also includes
         aliases.
         - If an alias contained leading dashes, either single or double, the
-        same number of dashes will be used, even in the case where a prefix is
-        added.
+        same number of dashes will be used
 
         For an illustration of this, see the aliases example.
 
@@ -165,12 +166,6 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         # remove duplicates by creating a set.
         option_strings = set(f"{dash}{option}" for dash, option in zip(dashes, options))
         return list(sorted(option_strings, key=len))
-
-    @property
-    def dest(self) -> str:
-        """Where the attribute will be stored in the Namespace."""
-        self._dest = super().dest
-        return self._dest
 
     @property
     def nargs(self):
@@ -301,6 +296,10 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
     def parent(self):
         return self._parent
 
+    def register_actions(self, parser: _ActionsContainer) -> None:
+        logger.debug(f"Arg options for field '{self.name}': {self.arg_options}")
+        parser.add_argument(*self.option_strings, **self.arg_options)
+
 
 def only_keep_action_args(options: Dict[str, Any], action: Union[str, Any]) -> Dict[str, Any]:
     """Remove all the arguments in `options` that aren't required by the Action.
@@ -353,7 +352,6 @@ def only_keep_action_args(options: Dict[str, Any], action: Union[str, Any]) -> D
             "Some auto-generated options were deleted, as they were "
             f"not required by the Action constructor: {deleted_options}."
         )
-    if deleted_options:
         logger.debug(f"Kept options: \t{kept_options.keys()}")
         logger.debug(f"Removed options: \t{deleted_options.keys()}")
     return kept_options

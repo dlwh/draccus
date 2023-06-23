@@ -4,9 +4,7 @@ from draccus import utils
 from draccus.options import Options
 from draccus.parsers.decoding import decode
 from draccus.parsers.encoding import encode
-
-
-Dataclass = TypeVar("Dataclass")
+from draccus.utils import Dataclass
 
 
 def parse_string(s):

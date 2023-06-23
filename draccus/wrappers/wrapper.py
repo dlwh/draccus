@@ -1,16 +1,18 @@
 """Abstract Wrapper base-class for the FieldWrapper and DataclassWrapper."""
-
+import abc
 from abc import ABC, abstractmethod
-from typing import Generic, List, Optional
+from argparse import _ActionsContainer
+from dataclasses import Field
+from typing import Generic, List, Optional, Type
 
 from draccus.utils import T
 
 
-class Wrapper(Generic[T], ABC):
-    def __init__(self, wrapped: T, name: str):
-        self.wrapped = wrapped
-        self._dest: Optional[str] = None
+# We can think of a Wrapper as a node in a tree, where the root is the DataclassWrapper for the root dataclass, and the
+# leaves are the FieldWrappers. (So internal nodes are DataclassWrappers, for now.)
 
+
+class Wrapper(Generic[T], ABC):
     @property
     def dest(self) -> str:
         """Where the attribute will be stored in the Namespace."""
@@ -19,8 +21,7 @@ class Wrapper(Generic[T], ABC):
         lineage_names: List[str] = [w.name for w in self.lineage()]
         if lineage_names[-1] is None:  # root usually won't have a name
             lineage_names = lineage_names[:-1]
-        self._dest = ".".join(reversed([self.name] + lineage_names))
-        return self._dest
+        return ".".join(reversed([self.name] + lineage_names))
 
     def lineage(self) -> List["Wrapper"]:
         lineage: List[Wrapper] = []
@@ -48,4 +49,28 @@ class Wrapper(Generic[T], ABC):
     @property
     @abstractmethod
     def parent(self) -> Optional["Wrapper"]:
+        pass
+
+    @abstractmethod
+    def register_actions(self, parser: _ActionsContainer) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def required(self) -> bool:
+        pass
+
+    @required.setter
+    @abstractmethod
+    def required(self, value: bool):
+        pass
+
+    @property
+    @abstractmethod
+    def field(self) -> Optional[Field]:
+        pass
+
+    @property
+    @abstractmethod
+    def type(self) -> Type:
         pass

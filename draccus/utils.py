@@ -10,6 +10,7 @@ from enum import Enum
 from logging import getLogger
 from typing import (
     Any,
+    ClassVar,
     Container,
     Dict,
     Iterable,
@@ -17,12 +18,14 @@ from typing import (
     Mapping,
     MutableMapping,
     Optional,
+    Protocol,
     Sequence,
     Set,
     Tuple,
     Type,
     TypeVar,
     Union,
+    cast,
 )
 
 import typing_inspect as tpi
@@ -41,13 +44,22 @@ try:
 except ImportError:
     from typing_inspect import get_origin  # type: ignore
 
+
+try:
+    from _typeshed import DataclassInstance  # type: ignore
+except ImportError:
+
+    class DataclassInstance(Protocol):  # type: ignore
+        __dataclass_fields__: ClassVar[Dict[str, dataclasses.Field]]
+
+
 logger = getLogger(__name__)
 
 builtin_types = [getattr(builtins, d) for d in dir(builtins) if isinstance(getattr(builtins, d), type)]
 
 T = TypeVar("T")
 
-Dataclass = TypeVar("Dataclass")
+Dataclass = TypeVar("Dataclass", bound=DataclassInstance)
 DataclassType = Type[Dataclass]
 
 
@@ -229,9 +241,9 @@ def default_value(field: dataclasses.Field) -> Union[T, _MISSING_TYPE]:
 def get_defaults_dict(c: Dataclass):
     """ " Get defaults of a dataclass without generating the object"""
     defaults_dict = {}
-    for field in dataclasses.fields(c):
+    for field in dataclasses.fields(c):  # type: ignore
         if is_dataclass_type(field.type):
-            defaults_dict[field.name] = get_defaults_dict(field.type)
+            defaults_dict[field.name] = get_defaults_dict(cast(DataclassType, field.type))  # type: ignore
         else:
             if field.default is not dataclasses.MISSING:
                 defaults_dict[field.name] = field.default
