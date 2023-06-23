@@ -50,7 +50,7 @@ try:
 except ImportError:
 
     class DataclassInstance(Protocol):  # type: ignore
-        __dataclass_fields__: ClassVar[Dict[str, dataclasses.Field[Any]]]
+        __dataclass_fields__: ClassVar[Dict[str, dataclasses.Field]]
 
 
 logger = getLogger(__name__)
