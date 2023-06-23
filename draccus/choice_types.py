@@ -13,6 +13,8 @@ a "get_class_choice(name)" method that returns the class corresponding to the gi
 other methods.
 
 We may add support for Unions.
+
+All registered types must be *dataclasses*
 """
 
 import functools
@@ -43,6 +45,13 @@ class ChoiceType(Protocol):
         """
         ...
 
+    @classmethod
+    def get_choice_name(cls, subcls: Type) -> str:
+        """
+        Returns the name of the given subclass of this choice type.
+        """
+        ...
+
 
 class ChoiceRegistry(ChoiceType):
     _choice_registry: ClassVar[Dict[str, Type]] = {}
@@ -54,6 +63,13 @@ class ChoiceRegistry(ChoiceType):
     @classmethod
     def get_known_choices(cls) -> Dict[str, Any]:
         return cls._choice_registry
+
+    @classmethod
+    def get_choice_name(cls, subcls: Type) -> str:
+        for name, choice_type in cls._choice_registry.items():
+            if choice_type == subcls:
+                return name
+        raise ValueError(f"Cannot find choice name for {subcls}")
 
     @classmethod
     def is_open_choice(cls) -> bool:

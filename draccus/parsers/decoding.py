@@ -8,6 +8,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
 
+from draccus.choice_types import CHOICE_TYPE_KEY, ChoiceType
 from draccus.parsers.registry_utils import RegistryFunc, withregistry
 from draccus.utils import (
     ParsingError,
@@ -90,18 +91,42 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
 
     # If there are arguments left over in the dict after taking all fields.
     if extra_args:
-        raise Exception(f"The fields {extra_args} do not belong to the class")
+        raise ParsingError(f"The fields {extra_args} do not belong to the class")
 
     init_args.update(extra_args)
     try:
         instance = cls(**init_args)  # type: ignore
     except TypeError as e:
-        raise ParsingError(f"Couldn't instantiate class {cls} using the given arguments.\n\t Underlying error: {e}")
+        raise ParsingError(f"Couldn't instantiate class {cls} using the given arguments.") from e
 
     for name, value in non_init_args.items():
         logger.debug(f"Setting non-init field '{name}' on the instance.")
         setattr(instance, name, value)
     return instance
+
+
+def decode_choice_class(cls: Type[T], raw_value: Any) -> T:
+    """Decodes a value into an subtype of a choice class following the ChoiceType protocol."""
+    assert issubclass(cls, ChoiceType)
+
+    if not isinstance(raw_value, dict):
+        raise ParsingError(f"Expected a dict for a choice class, got {raw_value}")
+
+    if CHOICE_TYPE_KEY not in raw_value:
+        raise ParsingError(f"Expected a dict with a '{CHOICE_TYPE_KEY}' key for {cls}, got {raw_value}")
+
+    choice_type = raw_value[CHOICE_TYPE_KEY]
+
+    try:
+        subcls = cls.get_choice_class(choice_type)
+    except KeyError:
+        raise ParsingError(f"Couldn't find a choice class for '{choice_type}' in {cls}")
+
+    raw_value = raw_value.copy()
+    raw_value.pop(CHOICE_TYPE_KEY)
+
+    # return decode(subcls, raw_value)
+    return decode_dataclass(subcls, raw_value)
 
 
 def decode_field(field: Field, raw_value: Any) -> Any:
@@ -144,6 +169,9 @@ def get_decoding_fn(cls: Type[T]) -> Callable[[Any], T]:
             return partial(cached_func.func, cls)
         else:
             return cached_func.func
+
+    elif issubclass(cls, ChoiceType):
+        return partial(decode_choice_class, cls)
 
     elif is_dataclass(cls):
         return partial(decode_dataclass, cls)
