@@ -63,7 +63,7 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
 
     logger.debug(f"from_dict for {cls}")
 
-    for field in fields(cls):
+    for field in fields(cls):  # type: ignore
         name = field.name
         if name not in obj_dict:
             if field.default is MISSING and field.default_factory is MISSING:

@@ -58,7 +58,7 @@ class ArgumentParser(Generic[T]):
         self,
         dataclass: Union[Type[Dataclass], Dataclass],
         prefix: str = "",
-        default: Union[Dataclass, Dict] = None,
+        default: Optional[Union[Dataclass, Dict]] = None,
         dataclass_wrapper_class: Type[DataclassWrapper] = DataclassWrapper,
     ):
         """Adds command-line arguments for the fields of `dataclass`."""
@@ -83,8 +83,8 @@ class ArgumentParser(Generic[T]):
 
     def parse_known_args(
         self,
-        args: Sequence[Text] = None,
-        namespace: Namespace = None,
+        args: Optional[Sequence[Text]] = None,
+        namespace: Optional[Namespace] = None,
     ):
         # NOTE: since the usual ArgumentParser.parse_args() calls
         # parse_known_args, we therefore just need to overload the

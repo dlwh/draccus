@@ -10,8 +10,6 @@ from draccus.utils import T
 
 # We can think of a Wrapper as a node in a tree, where the root is the
 # DataclassWrapper for the root dataclass, and the leaves are the FieldWrappers.
-# For historical reasons, the tree is essentially flattened into three layers:
-# a root, dataclass children and direct children of the root.
 
 
 class Wrapper(Generic[T], ABC):
@@ -60,4 +58,14 @@ class Wrapper(Generic[T], ABC):
 
     @abstractmethod
     def register_actions(self, parser: _ActionsContainer) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def required(self) -> bool:
+        pass
+
+    @required.setter
+    @abstractmethod
+    def required(self, value: bool):
         pass

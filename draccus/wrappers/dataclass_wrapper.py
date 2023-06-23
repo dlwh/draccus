@@ -5,7 +5,7 @@ from dataclasses import _MISSING_TYPE
 from logging import getLogger
 from typing import Dict, List, Optional, Type, Union, cast
 
-from draccus.utils import Dataclass
+from draccus.utils import Dataclass, DataclassType
 
 from .. import utils
 from . import docstring
@@ -22,10 +22,10 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
         dataclass: Type[Dataclass],
         name: Optional[str] = None,  # TODO(dlwh): I don't like this
         # TODO(dlwh): they aren't using the defaults?
-        default: Union[Dataclass, Dict] = None,
+        default: Optional[Union[Dataclass, Dict]] = None,
         prefix: str = "",
-        parent: "DataclassWrapper" = None,
-        _field: dataclasses.Field = None,
+        parent: Optional["DataclassWrapper"] = None,
+        _field: Optional[dataclasses.Field] = None,
         field_wrapper_class: Type[FieldWrapper] = FieldWrapper,
     ):
         self.dataclass = dataclass
@@ -51,7 +51,7 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
 
         self.optional: bool = False
 
-        for field in dataclasses.fields(self.dataclass):
+        for field in dataclasses.fields(self.dataclass):  # type: ignore
             if not field.init:
                 continue
 
@@ -64,7 +64,7 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
 
             elif dataclasses.is_dataclass(field.type):
                 # handle a nested dataclass attribute
-                dataclass, name = field.type, field.name
+                dataclass, name = (cast(DataclassType, field.type)), field.name
                 child_wrapper = DataclassWrapper(dataclass, name, parent=self, _field=field)
                 self._children.append(child_wrapper)
 
