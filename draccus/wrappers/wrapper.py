@@ -21,7 +21,9 @@ class Wrapper(Generic[T], ABC):
         lineage_names: List[str] = [w.name for w in self.lineage()]
         if lineage_names[-1] is None:  # root usually won't have a name
             lineage_names = lineage_names[:-1]
-        return ".".join(reversed([self.name] + lineage_names))
+
+        r = list(reversed([self.name] + lineage_names))
+        return ".".join(r)
 
     def lineage(self) -> List["Wrapper"]:
         lineage: List[Wrapper] = []

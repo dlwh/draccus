@@ -143,8 +143,9 @@ def parse(
     config_class: Type[T],
     config_path: Optional[Union[Path, str]] = None,
     args: Optional[Sequence[str]] = None,
+    exit_on_error: bool = True,
 ) -> T:
-    parser = ArgumentParser(config_class=config_class, config_path=config_path)
+    parser = ArgumentParser(config_class=config_class, config_path=config_path, exit_on_error=exit_on_error)
     return parser.parse_args(args)
 
 

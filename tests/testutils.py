@@ -93,7 +93,7 @@ class TestSetup:
         """
         if arguments is not None:
             arguments = shlex.split(arguments)  # type: ignore
-        cfg = draccus.parse(config_class=cls, args=arguments)
+        cfg = draccus.parse(config_class=cls, args=arguments, exit_on_error=False)
         return cfg
 
     @classmethod

@@ -71,11 +71,16 @@ class ChoiceWrapper(Wrapper):
 
         if self.choice_type.is_open_choice():
             group.add_argument(
-                f"--{arg_name}", help=f"Which type of {self.title} to use. Known types: {', '.join(children.keys())}"
+                f"--{arg_name}",
+                help=f"Which type of {self.title} to use. Known types: {', '.join(children.keys())}",
+                required=self.required,
             )
         else:
             group.add_argument(
-                f"--{arg_name}", choices=list(children.keys()), help=f"Which type of {self.title} to use"
+                f"--{arg_name}",
+                choices=list(children.keys()),
+                help=f"Which type of {self.title} to use",
+                required=self.required,
             )
 
         for child in self._children.values():
@@ -94,7 +99,7 @@ class ChoiceWrapper(Wrapper):
 
             # because we "substitute" the choice type for the child, we need to make sure that
             # the child's parent is the same as the choice type's parent
-            return DataclassWrapper(child, parent=self.parent, _field=self._field)
+            return DataclassWrapper(child, parent=self.parent, _field=self._field, name=self.name)
 
         return {name: _wrap_child(child) for name, child in self.choice_type.get_known_choices().items()}
 
@@ -122,8 +127,11 @@ class ChoiceWrapper(Wrapper):
 
 
 class _SuppressingArgumentGroup(_ArgumentGroup):
+    def __init__(self, container, *args, **kwargs):
+        kwargs = {**kwargs, "conflict_handler": "ignore"}
+        super().__init__(container, *args, **kwargs)
+
     def add_argument(self, *args, **kwargs):
-        kwargs["conflict_handler"] = "ignore"
         return super().add_argument(*args, **kwargs)
 
     def add_argument_group(self, *args, **kwargs):
