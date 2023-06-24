@@ -113,8 +113,8 @@ class TestSetup:
         # python changed "optional arguments:" to "options" in 3.9
         import re
 
-        replace_options = re.compile(r"^(optional arguments:|options:)")
-        s = replace_options.sub(s, "options:")
+        replace_options = re.compile(r"(?m)^(optional arguments:|options:)$")
+        s = replace_options.sub("options:", s)
         return s
 
 
