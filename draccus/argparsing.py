@@ -41,9 +41,10 @@ class ArgumentParser(Generic[T]):
         kwargs["formatter_class"] = formatter_class
         if "exit_on_error" in kwargs:
             # only available in python 3.9+, remove arg if not supported
-            # behavior was functionally True before 3.9
-            if not kwargs["exit_on_error"] and sys.version_info < (3, 9):
-                warnings.warn("ArgumentParser exit_on_error is only available in python 3.9+, removing argument")
+            if sys.version_info < (3, 9):
+                # behavior was functionally True before 3.9
+                if not kwargs["exit_on_error"]:
+                    warnings.warn("ArgumentParser exit_on_error is only available in python 3.9+, removing argument")
                 del kwargs["exit_on_error"]
 
         self.parser = SuppressingArgumentParser(*args, **kwargs)
