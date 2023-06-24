@@ -70,19 +70,12 @@ class ChoiceWrapper(AggregateWrapper[Type[ChoiceType]]):
         else:
             arg_name = f"{dest}.{CHOICE_TYPE_KEY}"
 
-        if self.choice_type.is_open_choice():
-            group.add_argument(
-                f"--{arg_name}",
-                help=f"Which type of {self.title} to use. Known types: {', '.join(children.keys())}",
-                required=self.required,
-            )
-        else:
-            group.add_argument(
-                f"--{arg_name}",
-                choices=list(children.keys()),
-                help=f"Which type of {self.title} to use",
-                required=self.required,
-            )
+        group.add_argument(
+            f"--{arg_name}",
+            choices=list(children.keys()),
+            help=f"Which type of {self.title} to use",
+            required=self.required,
+        )
 
         for child in self._children.values():
             from .dataclass_wrapper import DataclassWrapper
