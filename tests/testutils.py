@@ -81,7 +81,6 @@ class TestSetup:
     def setup(
         cls: Type[Dataclass],
         arguments: Optional[str] = "",
-        exit_on_error: bool = True,
     ) -> Dataclass:
         """Basic setup for a tests.
 
@@ -94,7 +93,7 @@ class TestSetup:
         """
         if arguments is not None:
             arguments = shlex.split(arguments)  # type: ignore
-        cfg = draccus.parse(config_class=cls, args=arguments, exit_on_error=exit_on_error, prog="draccus")
+        cfg = draccus.parse(config_class=cls, args=arguments, prog="draccus")
         return cfg
 
     @classmethod

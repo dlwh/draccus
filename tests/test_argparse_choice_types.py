@@ -36,19 +36,17 @@ def test_choice_registry_argparse():
     s = Something.setup("")
     assert s.person == Adult("bob", 10)
 
-    s = Something.setup("--person.type child --person.name bob --person.favorite_toy truck", exit_on_error=False)
+    s = Something.setup("--person.type child --person.name bob --person.favorite_toy truck")
     assert s.person == Child("bob", "truck")
 
-    with pytest.raises(ArgumentError):
-        Something.setup("--person.type baby --person.name bob", exit_on_error=False)
+    with pytest.raises(SystemExit):
+        Something.setup("--person.type baby --person.name bob")
 
     with pytest.raises(ParsingError):
-        Something.setup(
-            "--person.type adult --person.name bob --person.age 10 --person.favorite_toy truck", exit_on_error=False
-        )
+        Something.setup("--person.type adult --person.name bob --person.age 10 --person.favorite_toy truck")
 
     with pytest.raises(ParsingError):
-        Something.setup("--person.name hi", exit_on_error=False)
+        Something.setup("--person.name hi")
 
 
 @dataclasses.dataclass
@@ -58,6 +56,7 @@ class Something(TestSetup):
 
 def test_choice_registry_examine_help():
 
+    # TODO: why is the default: None here?
     target = """
 usage: draccus [-h] [--config_path str] [--person.type {adult,child}]
                [--person.age int] [--person.name str]
