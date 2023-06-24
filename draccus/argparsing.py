@@ -19,6 +19,7 @@ from draccus.help_formatter import SimpleHelpFormatter
 from draccus.parsers import decoding
 from draccus.utils import Dataclass, PyrallisException
 from draccus.wrappers import DataclassWrapper
+from draccus.wrappers.suppressing_argparse import SuppressingArgumentParser
 
 
 logger = getLogger(__name__)
@@ -37,7 +38,8 @@ class ArgumentParser(Generic[T]):
     ):
         """Creates an ArgumentParser instance."""
         kwargs["formatter_class"] = formatter_class
-        self.parser = argparse.ArgumentParser(*args, **kwargs)
+        # self.parser = argparse.ArgumentParser(*args, **kwargs)
+        self.parser = SuppressingArgumentParser(*args, **kwargs)
 
         # constructor arguments for the dataclass instances.
         # (a Dict[dest, [attribute, value]])
@@ -143,9 +145,20 @@ def parse(
     config_class: Type[T],
     config_path: Optional[Union[Path, str]] = None,
     args: Optional[Sequence[str]] = None,
+    prog: Optional[str] = None,
     exit_on_error: bool = True,
 ) -> T:
-    parser = ArgumentParser(config_class=config_class, config_path=config_path, exit_on_error=exit_on_error)
+    """
+    Parses the command line arguments and returns an instance of the config class.
+
+    Args:
+        config_class: The config class to parse.
+        config_path: The path to the config file to parse.
+        args: The command line arguments to parse. If None, defaults to sys.argv[1:].
+        prog: The name of the program (for the help message).
+        exit_on_error: Whether to exit if an error occurs.
+    """
+    parser = ArgumentParser(config_class=config_class, config_path=config_path, exit_on_error=exit_on_error, prog=prog)
     return parser.parse_args(args)
 
 

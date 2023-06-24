@@ -3,7 +3,6 @@ from argparse import ArgumentError
 
 import pytest
 
-import draccus
 from draccus import ParsingError
 from draccus.choice_types import ChoiceRegistry
 
@@ -37,17 +36,19 @@ def test_choice_registry_argparse():
     s = Something.setup("")
     assert s.person == Adult("bob", 10)
 
-    s = Something.setup("--person.type child --person.name bob --person.favorite_toy truck")
+    s = Something.setup("--person.type child --person.name bob --person.favorite_toy truck", exit_on_error=False)
     assert s.person == Child("bob", "truck")
 
     with pytest.raises(ArgumentError):
-        Something.setup("--person.type baby --person.name bob")
+        Something.setup("--person.type baby --person.name bob", exit_on_error=False)
 
     with pytest.raises(ParsingError):
-        Something.setup("--person.type adult --person.name bob --person.age 10 --person.favorite_toy truck")
+        Something.setup(
+            "--person.type adult --person.name bob --person.age 10 --person.favorite_toy truck", exit_on_error=False
+        )
 
     with pytest.raises(ParsingError):
-        Something.setup("--person.name hi")
+        Something.setup("--person.name hi", exit_on_error=False)
 
 
 @dataclasses.dataclass
@@ -56,10 +57,34 @@ class Something(TestSetup):
 
 
 def test_choice_registry_examine_help():
-    assert (
-        Something.get_help_text()
-        == """\
-usage: pytest [-h] [--person.type {adult,child}] [--person.name str]
-                [--person.age int] [--person.favorite_toy str]
-                """
-    )
+
+    target = """
+usage: draccus [-h] [--config_path str] [--person.type {adult,child}]
+               [--person.age int] [--person.name str]
+               [--person.favorite_toy str]
+
+options:
+  -h, --help            show this help message and exit
+  --config_path str     Path for a config file to parse with draccus (default:
+                        None)
+
+Something:
+
+Person ['person']:
+
+  --person.type {adult,child}
+                        Which type of Person ['person'] to use (default: None)
+
+Adult ['person']:
+
+  --person.name str     Person's name (default: None)
+  --person.age int
+
+Child ['person']:
+
+  --person.name str     Person's name (default: None)
+  --person.favorite_toy str
+                        Child's favorite toy (default: None)
+"""
+
+    assert Something.get_help_text().strip() == target.strip()

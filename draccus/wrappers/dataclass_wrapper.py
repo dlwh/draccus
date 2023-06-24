@@ -1,5 +1,5 @@
+import argparse
 import dataclasses
-from argparse import _ActionsContainer
 from dataclasses import _MISSING_TYPE
 from logging import getLogger
 from typing import Dict, List, Optional, Type, Union, cast
@@ -13,13 +13,13 @@ from ..choice_types import ChoiceType
 from . import docstring
 from .choice_wrapper import ChoiceWrapper
 from .field_wrapper import FieldWrapper
-from .wrapper import Wrapper
+from .wrapper import AggregateWrapper, Wrapper
 
 
 logger = getLogger(__name__)
 
 
-class DataclassWrapper(Wrapper[Type[Dataclass]]):
+class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
     def __init__(
         self,
         dataclass: Type[Dataclass],
@@ -54,11 +54,14 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
             if child is not None:
                 self._children.append(child)
 
-    def register_actions(self, parser: _ActionsContainer) -> None:
+    def register_actions(self, parser: argparse.ArgumentParser) -> None:
         group = parser.add_argument_group(title=self.title, description=self.description)
 
         for child in self._children:
-            child.register_actions(group)
+            if isinstance(child, AggregateWrapper):
+                child.register_actions(parser)
+            elif isinstance(child, FieldWrapper):
+                child.add_action(group)
 
     @property
     def name(self) -> str:

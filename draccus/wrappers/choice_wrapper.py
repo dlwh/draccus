@@ -1,5 +1,5 @@
+import argparse
 import dataclasses
-from argparse import _ActionsContainer, _ArgumentGroup
 from dataclasses import Field
 from functools import cached_property
 from typing import Dict, Optional, Type
@@ -7,10 +7,11 @@ from typing import Dict, Optional, Type
 from ..choice_types import CHOICE_TYPE_KEY, ChoiceType
 from ..parsers.decoding import has_custom_decoder
 from . import docstring
-from .wrapper import Wrapper
+from .field_wrapper import FieldWrapper
+from .wrapper import AggregateWrapper, Wrapper
 
 
-class ChoiceWrapper(Wrapper):
+class ChoiceWrapper(AggregateWrapper[Type[ChoiceType]]):
     def __init__(
         self,
         choice_type: Type[ChoiceType],
@@ -56,9 +57,9 @@ class ChoiceWrapper(Wrapper):
             return ""  # The base dataclass doc looks confusing, remove it
         return class_doc
 
-    def register_actions(self, parser: _ActionsContainer) -> None:
+    def register_actions(self, parser: argparse.ArgumentParser) -> None:
         # group = parser.add_argument_group(title=self.title, description=self.description)
-        group = _SuppressingArgumentGroup(parser, title=self.title, description=self.description)
+        group = parser.add_argument_group(title=self.title, description=self.description)
 
         children = self._children
 
@@ -84,8 +85,10 @@ class ChoiceWrapper(Wrapper):
             )
 
         for child in self._children.values():
-            # TODO: need to suppress conflicts among the choices
-            child.register_actions(group)
+            from .dataclass_wrapper import DataclassWrapper
+
+            assert isinstance(child, DataclassWrapper)
+            child.register_actions(parser)
 
     @cached_property
     def _children(self) -> Dict[str, Wrapper]:
@@ -124,23 +127,3 @@ class ChoiceWrapper(Wrapper):
     @property
     def type(self) -> Type:
         return self.choice_type
-
-
-class _SuppressingArgumentGroup(_ArgumentGroup):
-    def __init__(self, container, *args, **kwargs):
-        kwargs = {**kwargs, "conflict_handler": "resolve"}
-        super().__init__(container, *args, **kwargs)
-
-    def add_argument(self, *args, **kwargs):
-        return super().add_argument(*args, **kwargs)
-
-    def add_argument_group(self, *args, **kwargs):
-        group = _SuppressingArgumentGroup(self, *args, **kwargs)
-        self._action_groups.append(group)
-        return group
-
-    def add_mutually_exclusive_group(self, *args, **kwargs):
-        raise NotImplementedError("Mutually exclusive groups are not supported for choice types")
-
-    def _handle_conflict_ignore(self, action, conflicting_actions):
-        pass

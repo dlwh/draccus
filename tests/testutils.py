@@ -81,6 +81,7 @@ class TestSetup:
     def setup(
         cls: Type[Dataclass],
         arguments: Optional[str] = "",
+        exit_on_error: bool = True,
     ) -> Dataclass:
         """Basic setup for a tests.
 
@@ -93,7 +94,7 @@ class TestSetup:
         """
         if arguments is not None:
             arguments = shlex.split(arguments)  # type: ignore
-        cfg = draccus.parse(config_class=cls, args=arguments, exit_on_error=False)
+        cfg = draccus.parse(config_class=cls, args=arguments, exit_on_error=exit_on_error, prog="draccus")
         return cfg
 
     @classmethod
@@ -110,7 +111,7 @@ class TestSetup:
                 "--help",
             )
         s = f.getvalue()
-        return s
+        return s.strip()
 
 
 ListFormattingFunction = Callable[[List[Any]], str]
