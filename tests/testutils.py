@@ -99,7 +99,6 @@ class TestSetup:
     @classmethod
     def get_help_text(
         cls,
-        multiple=False,
     ) -> str:
         import contextlib
         from io import StringIO
@@ -109,8 +108,14 @@ class TestSetup:
             _ = cls.setup(
                 "--help",
             )
-        s = f.getvalue()
-        return s.strip()
+        s = f.getvalue().strip()
+
+        # python changed "optional arguments:" to "options" in 3.9
+        import re
+
+        replace_options = re.compile(r"^(optional arguments:|options:)")
+        s = replace_options.sub(s, "options:")
+        return s
 
 
 ListFormattingFunction = Callable[[List[Any]], str]
