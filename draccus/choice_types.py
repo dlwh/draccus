@@ -75,7 +75,12 @@ class ChoiceType(Protocol):
 
 
 class ChoiceRegistry(ChoiceType):
-    _choice_registry: ClassVar[Dict[str, Type]] = {}
+    _choice_registry: ClassVar[Dict[str, Any]]
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if not hasattr(cls, "_choice_registry"):
+            cls._choice_registry: ClassVar[Dict[str, Any]] = {}
 
     @classmethod
     def get_choice_class(cls, name: str) -> Any:

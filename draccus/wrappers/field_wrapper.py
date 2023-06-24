@@ -296,7 +296,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
     def parent(self):
         return self._parent
 
-    def register_actions(self, parser: _ActionsContainer) -> None:
+    def add_action(self, parser: _ActionsContainer) -> None:
         logger.debug(f"Arg options for field '{self.name}': {self.arg_options}")
         parser.add_argument(*self.option_strings, **self.arg_options)
 

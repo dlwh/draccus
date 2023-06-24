@@ -25,7 +25,7 @@ Dataclass = TypeVar("Dataclass")
 
 
 @contextmanager
-def raises(exception=ParsingError, match=None, code: int = None):
+def raises(exception=ParsingError, match=None, code: Optional[int] = None):
     with pytest.raises(exception, match=match):
         yield
 
@@ -93,13 +93,12 @@ class TestSetup:
         """
         if arguments is not None:
             arguments = shlex.split(arguments)  # type: ignore
-        cfg = draccus.parse(config_class=cls, args=arguments)
+        cfg = draccus.parse(config_class=cls, args=arguments, prog="draccus")
         return cfg
 
     @classmethod
     def get_help_text(
         cls,
-        multiple=False,
     ) -> str:
         import contextlib
         from io import StringIO
@@ -109,7 +108,13 @@ class TestSetup:
             _ = cls.setup(
                 "--help",
             )
-        s = f.getvalue()
+        s = f.getvalue().strip()
+
+        # python changed "optional arguments:" to "options" in 3.9
+        import re
+
+        replace_options = re.compile(r"(?m)^(optional arguments:|options:)$")
+        s = replace_options.sub("options:", s)
         return s
 
 

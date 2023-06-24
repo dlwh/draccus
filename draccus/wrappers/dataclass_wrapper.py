@@ -1,5 +1,5 @@
+import argparse
 import dataclasses
-from argparse import _ActionsContainer
 from dataclasses import _MISSING_TYPE
 from logging import getLogger
 from typing import Dict, List, Optional, Type, Union, cast
@@ -7,17 +7,19 @@ from typing import Dict, List, Optional, Type, Union, cast
 from draccus.utils import Dataclass, DataclassType
 
 from .. import utils
+from ..choice_types import ChoiceType
 
 # from ..parsers.decoding import get_decoding_fn, has_custom_decoder
 from . import docstring
+from .choice_wrapper import ChoiceWrapper
 from .field_wrapper import FieldWrapper
-from .wrapper import Wrapper
+from .wrapper import AggregateWrapper, Wrapper
 
 
 logger = getLogger(__name__)
 
 
-class DataclassWrapper(Wrapper[Type[Dataclass]]):
+class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
     def __init__(
         self,
         dataclass: Type[Dataclass],
@@ -33,7 +35,6 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
 
         self._required: bool = False
         self._explicit: bool = False
-        self._dest: str = ""
         self._children: List[Wrapper] = []
         self._parent = parent
         # the field of the parent, which contains this child dataclass.
@@ -53,11 +54,14 @@ class DataclassWrapper(Wrapper[Type[Dataclass]]):
             if child is not None:
                 self._children.append(child)
 
-    def register_actions(self, parser: _ActionsContainer) -> None:
+    def register_actions(self, parser: argparse.ArgumentParser) -> None:
         group = parser.add_argument_group(title=self.title, description=self.description)
 
         for child in self._children:
-            child.register_actions(group)
+            if isinstance(child, AggregateWrapper):
+                child.register_actions(parser)
+            elif isinstance(child, FieldWrapper):
+                child.add_action(group)
 
     @property
     def name(self) -> str:
@@ -152,6 +156,8 @@ def _wrap_field(parent: Optional[Wrapper], field: dataclasses.Field) -> Optional
     #     field_wrapper = field_wrapper_class(field, parent=self, prefix=self.prefix)
     #     logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
     #     return field_wrapper
+    elif utils.is_choice_type(field.type):
+        return ChoiceWrapper(cast(Type[ChoiceType], field.type), field.name, parent=parent, _field=field)
 
     elif utils.is_tuple_or_list_of_dataclasses(field.type):
         raise NotImplementedError(

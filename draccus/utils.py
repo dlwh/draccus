@@ -322,6 +322,12 @@ def has_generic_arg(args):
     return False
 
 
+def is_choice_type(cls) -> bool:
+    from draccus.choice_types import ChoiceType
+
+    return inspect.isclass(cls) and issubclass(cls, ChoiceType)
+
+
 CONFIG_ARG = "config_path"
 
 if __name__ == "__main__":

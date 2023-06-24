@@ -1,15 +1,17 @@
-from builtins import TypeError
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from typing import List, no_type_check
 
-from tests.testutils import *
+from draccus import ParsingError
+
+from .testutils import TestSetup, raises
 
 
 class Color(Enum):
-    blue: str = auto()
-    red: str = auto()
-    green: str = auto()
-    orange: str = auto()
+    blue: str = auto()  # type: ignore
+    red: str = auto()  # type: ignore
+    green: str = auto()  # type: ignore
+    orange: str = auto()  # type: ignore
 
 
 def test_passing_enum_to_choice():

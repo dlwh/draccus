@@ -1,7 +1,7 @@
 """Abstract Wrapper base-class for the FieldWrapper and DataclassWrapper."""
 import abc
+import argparse
 from abc import ABC, abstractmethod
-from argparse import _ActionsContainer
 from dataclasses import Field
 from typing import Generic, List, Optional, Type
 
@@ -21,7 +21,9 @@ class Wrapper(Generic[T], ABC):
         lineage_names: List[str] = [w.name for w in self.lineage()]
         if lineage_names[-1] is None:  # root usually won't have a name
             lineage_names = lineage_names[:-1]
-        return ".".join(reversed([self.name] + lineage_names))
+
+        r = list(reversed([self.name] + lineage_names))
+        return ".".join(r)
 
     def lineage(self) -> List["Wrapper"]:
         lineage: List[Wrapper] = []
@@ -51,10 +53,6 @@ class Wrapper(Generic[T], ABC):
     def parent(self) -> Optional["Wrapper"]:
         pass
 
-    @abstractmethod
-    def register_actions(self, parser: _ActionsContainer) -> None:
-        pass
-
     @property
     @abstractmethod
     def required(self) -> bool:
@@ -73,4 +71,12 @@ class Wrapper(Generic[T], ABC):
     @property
     @abstractmethod
     def type(self) -> Type:
+        pass
+
+
+class AggregateWrapper(Wrapper[T]):
+    """Wrapper for types that have fields (i.e. Dataclasses and Choices)."""
+
+    @abstractmethod
+    def register_actions(self, parser: argparse.ArgumentParser) -> None:
         pass

@@ -16,6 +16,7 @@ from draccus.utils import (
     format_error,
     get_type_arguments,
     has_generic_arg,
+    is_choice_type,
     is_dict,
     is_enum,
     is_list,
@@ -171,7 +172,7 @@ def get_decoding_fn(cls: Type[T]) -> Callable[[Any], T]:
         else:
             return cached_func.func
 
-    elif inspect.isclass(cls) and issubclass(cls, ChoiceType):
+    elif is_choice_type(cls):
         return partial(decode_choice_class, cls)
 
     elif is_dataclass(cls):

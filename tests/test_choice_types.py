@@ -9,7 +9,7 @@ from draccus.choice_types import ChoiceRegistry
 
 @dataclasses.dataclass
 class Person(ChoiceRegistry):
-    name: str
+    name: str  # Person's name
 
 
 @dataclasses.dataclass
