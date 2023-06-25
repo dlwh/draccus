@@ -5,11 +5,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "draccus"
-version = "0.3.1"
+version = "0.4.0"
 authors = [
   { name="David Hall", email="dlwh@cs.stanford.edu" },
     { name="Sidd Karamcheti"},
-    { name="Elad Richardson"}
 ]
 description = "A framework for simple dataclass-based configurations."
 readme = "README.md"
@@ -48,4 +47,11 @@ ensure_newline_before_comments = true
 line_length = 119
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.8"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "tests",
+]
+addopts = "--ignore=tests/draccus_choice_plugins"

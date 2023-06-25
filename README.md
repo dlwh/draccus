@@ -18,7 +18,7 @@
 Draccus is a fork of the excellent [Pyrallis](https://github.com/eladrich/pyrallis) library, but with
 a few changes to make it more suitable for my use cases. The main changes are:
 
-* WIP: Support for subtyping configs (that is, choosing between different configs based on a parameter)
+* Support for subtyping configs (that is, choosing between different configs based on a parameter)
 * WIP: Support for including config files in config files
 * WIP: Better support for type parameters
 * Couple of bug fixes
@@ -37,14 +37,14 @@ We still try to maintain their simple, clean
 With `draccus` your configuration is linked directly to your pre-defined `dataclass`, allowing you to easily create different configuration structures, including nested ones, using an object-oriented design. The parsed arguments are used to initialize your `dataclass`, giving you the typing hints and automatic code completion of a full `dataclass` object.
 
 
-# Everything below here is from Pyrallis. I'll update it eventually.
-
 ## My First Draccus Example
 
+(This example is the same as in Pyrallis. Draccus differs mainly in advanced features like subtyping.)
 
-There are several key features to pyrallis but at its core pyrallis simply allows defining an argument parser using a dataclass.
+Here's a simple example of how to use `draccus` to parse arguments into a `dataclass`:
 
 ```python
+import dataclasses
 from dataclasses import dataclass
 import draccus
 
@@ -72,7 +72,94 @@ Assuming the following configuration file
 ```yaml
 exp_name: my_yaml_exp
 workers: 42
+
+model:
+  type: bert
+  num_layers: 24
+  num_heads: 24
+  hidden_size: 1024
+  dropout: 0.2
 ```
+
+## More Flexible Configuration with Choice Types
+
+Choice Types, aka "Sum Types" or "Tagged Unions", are a powerful way to define a choice of types that can be selected at
+runtime. For instance, you might want to choose what kind of model to train, or what kind of optimizer to use.
+
+Draccus provides a `ChoiceRegistry` class that lets you define a choice of types that can be selected at runtime. You
+can then use the `register_subclass` decorator to register a subclass of your choice type. The `type` field of the
+choice type is used to select the subclass.
+
+Here's a modified version of the example above, where we use a `ChoiceRegistry` to define a choice of model types:
+
+```python
+import dataclasses
+from dataclasses import dataclass
+import draccus
+
+
+# Choice Registry lets you define a choice of implementations that can be selected at runtime
+@dataclass
+class ModelConfig(draccus.ChoiceRegistry):
+    pass
+
+
+@ModelConfig.register_subclass('gpt')
+@dataclasses.dataclass
+class GPTConfig(ModelConfig):
+    """ GPT Model Config """
+    num_layers: int = 12
+    num_heads: int = 12
+    hidden_size: int = 768
+
+
+@ModelConfig.register_subclass('bert')
+@dataclasses.dataclass
+class BERTConfig(ModelConfig):
+    """ BERT Model Config """
+    num_layers: int = 12
+    num_heads: int = 12
+    hidden_size: int = 768
+    dropout: float = 0.1
+
+
+@dataclass
+class TrainConfig:
+    """ Training config for Machine Learning """
+    workers: int = 8  # The number of workers for training
+    exp_name: str = 'default_exp'  # The experiment name
+
+    model: ModelConfig = GPTConfig()  # The model configuration
+
+
+def main():
+    cfg = draccus.parse(config_class=TrainConfig)
+    print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
+
+```
+
+The arguments can then be specified using command-line arguments, a `yaml` configuration file, or both.
+
+```console
+$ python train_model.py --config_path=some_config.yaml --exp_name=my_first_exp
+Training my_first_exp with 42 workers...
+```
+Assuming the following configuration file
+```yaml
+exp_name: my_yaml_exp
+workers: 42
+
+model:
+  type: bert
+  num_layers: 24
+  num_heads: 24
+  hidden_size: 1024
+  dropout: 0.2
+```
+
+# Everything below here is from Pyrallis. I'll update it eventually.
+
+(It all still applies, substituting `draccus` for `pyrallis`.)
 
 ### Key Features
 Building on that design `pyrallis` offers some really enjoyable features including
