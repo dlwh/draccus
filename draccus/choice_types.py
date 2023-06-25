@@ -97,6 +97,7 @@ class ChoiceRegistryBase(ChoiceType):
     def register_subclass(cls, name: str, choice_type: Optional[Type[T]] = None):
         if choice_type is None:
             return functools.partial(cls.register_subclass, name)
+
         if name in cls._choice_registry:
             other_choice_type = cls._choice_registry[name]
             if other_choice_type != choice_type:
@@ -187,7 +188,7 @@ class PluginRegistry(ChoiceRegistryBase):
             return
 
         # from https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/
-        package_module = importlib.import_module(cls.discover_packages_path)
+        package_module = importlib.import_module(cls.discover_packages_path, __package__)
 
         def iter_namespace(ns_pkg):
             # Specifying the second argument (prefix) to iter_modules makes the
