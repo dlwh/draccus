@@ -1,4 +1,5 @@
 import dataclasses
+import sys
 
 import pytest
 
@@ -38,6 +39,11 @@ def test_plugin_registry_argparse():
         Something.setup("--model.attn_pdrop 12")
 
 
+# skip this test if using python 3.8
+# the help text is a bit different in 3.8
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires python3.9 or higher")
 def test_choice_registry_examine_help():
     @dataclasses.dataclass
     class Something(TestSetup):
