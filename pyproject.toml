@@ -47,4 +47,4 @@ ensure_newline_before_comments = true
 line_length = 119
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.8"
