@@ -23,10 +23,8 @@ class GPTConfig(ModelConfig):
     layers: int
 ```
 
-For config parsing, this distinction doesn't matter that much, but for help generation, it matters quite a bit.
-
 For now, Draccus choice types are implemented as classes that conform to a protocol. The protocol defines
-a "get_class_choice(name)" method that returns the class corresponding to the given name, along with a few
+a "get_choice_class(name)" method that returns the class corresponding to the given name, along with a few
 other methods.
 
 We may add support for Unions.
