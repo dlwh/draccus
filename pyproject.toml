@@ -19,7 +19,7 @@ classifiers = [
 "Operating System :: OS Independent",
 ]
 dependencies = [
-  "typing_inspect",
+  "typing-inspect>=0.9.0",
   "dataclasses; python_version < '3.7'",
   "pyyaml",
 ]
