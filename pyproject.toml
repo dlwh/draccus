@@ -19,10 +19,14 @@ classifiers = [
 "Operating System :: OS Independent",
 ]
 dependencies = [
-  "typing_inspect",
+  "typing-inspect>=0.9.0",
   "dataclasses; python_version < '3.7'",
   "pyyaml",
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/dlwh/draccus"
+"Bug Tracker" = "https://github.com/dlwh/draccus/issues"
 
 [tool.hatch.extras]
 test = ["pytest"]
