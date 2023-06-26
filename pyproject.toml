@@ -24,6 +24,10 @@ dependencies = [
   "pyyaml",
 ]
 
+[project.urls]
+"Homepage" = "https://github.com/dlwh/draccus"
+"Bug Tracker" = "https://github.com/dlwh/draccus/issues"
+
 [tool.hatch.extras]
 test = ["pytest"]
 
