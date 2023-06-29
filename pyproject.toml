@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "draccus"
-version = "0.4.1"
+version = "0.4.2"
 authors = [
   { name="David Hall", email="dlwh@cs.stanford.edu" },
     { name="Sidd Karamcheti"},
@@ -22,6 +22,7 @@ dependencies = [
   "typing-inspect>=0.9.0",
   "dataclasses; python_version < '3.7'",
   "pyyaml",
+  "mergedeep"
 ]
 
 [project.urls]
