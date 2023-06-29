@@ -280,7 +280,7 @@ def keep_keys(d: Dict, keys_to_keep: Iterable[str]) -> Tuple[Dict, Dict]:
 def flatten(d, parent_key=None, sep="."):
     items = []
     for k, v in d.items():
-        new_key = parent_key + sep + k if parent_key else k
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
         if isinstance(v, c_abc.MutableMapping):
             items.extend(flatten(v, parent_key=new_key, sep=sep).items())
         else:

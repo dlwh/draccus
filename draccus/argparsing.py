@@ -14,6 +14,8 @@ from logging import getLogger
 from pathlib import Path
 from typing import Dict, Generic, Optional, Sequence, Text, Type, TypeVar, Union
 
+import mergedeep
+
 from draccus import cfgparsing, utils
 from draccus.help_formatter import SimpleHelpFormatter
 from draccus.parsers import decoding
@@ -139,11 +141,11 @@ class ArgumentParser(Generic[T]):
 
         if config_path is not None:
             file_args = cfgparsing.load_config(open(config_path, "r"))
-            file_args = utils.flatten(file_args, sep=".")
-            file_args.update(parsed_arg_values)
-            parsed_arg_values = file_args
+        else:
+            file_args = {}
 
         deflat_d = utils.deflatten(parsed_arg_values, sep=".")
+        deflat_d = mergedeep.merge(file_args, deflat_d)
         cfg = decoding.decode(self.config_class, deflat_d)
 
         return cfg

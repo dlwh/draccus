@@ -1,6 +1,7 @@
 import shlex
 import string
 import sys
+import tempfile
 from contextlib import contextmanager, redirect_stderr, suppress
 from io import StringIO
 from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, Type, TypeVar, cast
@@ -78,10 +79,7 @@ T = TypeVar("T")
 
 class TestSetup:
     @classmethod
-    def setup(
-        cls: Type[Dataclass],
-        arguments: Optional[str] = "",
-    ) -> Dataclass:
+    def setup(cls: Type[Dataclass], arguments: Optional[str] = "", config: Optional[str] = None) -> Dataclass:
         """Basic setup for a tests.
 
         Keyword Arguments:
@@ -93,7 +91,13 @@ class TestSetup:
         """
         if arguments is not None:
             arguments = shlex.split(arguments)  # type: ignore
-        cfg = draccus.parse(config_class=cls, args=arguments, prog="draccus")
+        if config is not None:
+            f = tempfile.NamedTemporaryFile(suffix=".yaml")
+            with open(f.name, "w") as fd:
+                fd.write(config)
+            cfg = draccus.parse(config_class=cls, args=arguments, prog="draccus", config_path=f.name)
+        else:
+            cfg = draccus.parse(config_class=cls, args=arguments, prog="draccus")
         return cfg
 
     @classmethod

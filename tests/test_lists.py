@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Set, Tuple, Type
+from typing import Any, Dict, List, Optional, Set, Tuple, Type
 
 import pytest
 
@@ -86,6 +86,7 @@ def test_parse_multiple_with_list_attributes(
     "item_type, type_hint, value, arg",
     [
         (list, List, [1, 2, 3], "[1, 2, 3]"),
+        (Optional[list], Optional[List], [1, 2, 3], "[1, 2, 3]"),
         (set, Set, {1, 2, 3}, "[1, 2, 3]"),
         (tuple, Tuple, (1, 2, 3), "[1, 2, 3]"),
         (dict, Dict, {1: 2}, "{1: 2}"),
@@ -99,6 +100,9 @@ def test_collection_no_type(item_type, type_hint, value, arg):
     c = ContainerHint.setup(f"--a '{arg}'")
     assert c.a == value
 
+    c = ContainerHint.setup(config=f"""a: {arg}""")
+    assert c.a == value
+
     @dataclass
     class ContainerType(TestSetup):
         a: item_type
@@ -106,11 +110,14 @@ def test_collection_no_type(item_type, type_hint, value, arg):
     c = ContainerType.setup(f"--a '{arg}'")
     assert c.a == value
 
+    c = ContainerType.setup(config=f"""a: {arg}""")
+    assert c.a == value
+
 
 def test_list_of_dataclasses():
     @dataclass
     class Inner(TestSetup):
-        a: int
+        a: float
 
     @dataclass
     class Outer(TestSetup):
@@ -118,3 +125,18 @@ def test_list_of_dataclasses():
 
     c = Outer.setup("""--a '[{"a": 1}, {"a": 2}]'""")
     assert c.a == [Inner(a=1), Inner(a=2)]
+
+    @dataclass
+    class OptionalOuter(TestSetup):
+        b: Optional[Outer] = None
+
+    c = OptionalOuter.setup("""--b.a '[{"a": 1}, {"a": 2}]'""")
+    assert c.b == Outer(a=[Inner(a=1), Inner(a=2)])
+
+    yaml = """
+b:
+    a:
+        - a: 1
+        - a: 2
+    """
+    c = OptionalOuter.setup(config=yaml)
