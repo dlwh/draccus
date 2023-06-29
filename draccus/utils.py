@@ -206,6 +206,15 @@ def get_dataclass_type_arg(t: Type) -> Optional[Type]:
     return None
 
 
+def is_optional_or_union_with_dataclass_type_arg(t: Type) -> bool:
+    if is_union(t) or is_optional(t):
+        return any(
+            is_dataclass_type(arg) or is_optional_or_union_with_dataclass_type_arg(arg)
+            for arg in get_type_arguments(t)
+        )
+    return False
+
+
 def get_type_arguments(container_type: Type) -> Tuple[Type, ...]:
     # return getattr(container_type, "__args__", ())
     return get_args(container_type)

@@ -1,7 +1,9 @@
 from dataclasses import dataclass, field
-from typing import *
+from typing import Any, Dict, List, Set, Tuple, Type
+
 import pytest
-from .testutils import *
+
+from .testutils import ParsingError, TestSetup, format_list_using_brackets, parametrize, raises
 
 
 def test_list_one_element(simple_attribute):
@@ -66,8 +68,8 @@ def test_default_value(ContainerClass):
     ],
 )
 def test_parse_multiple_with_list_attributes(
-        item_type: Type,
-        passed_values: List[List[Any]],
+    item_type: Type,
+    passed_values: List[List[Any]],
 ):
     @dataclass
     class SomeClass(TestSetup):
@@ -83,10 +85,10 @@ def test_parse_multiple_with_list_attributes(
 @parametrize(
     "item_type, type_hint, value, arg",
     [
-        (list, List, [1, 2, 3], '[1, 2, 3]'),
-        (set, Set, {1, 2, 3}, '[1, 2, 3]'),
-        (tuple, Tuple, (1, 2, 3), '[1, 2, 3]'),
-        (dict, Dict, {1: 2}, '{1: 2}')
+        (list, List, [1, 2, 3], "[1, 2, 3]"),
+        (set, Set, {1, 2, 3}, "[1, 2, 3]"),
+        (tuple, Tuple, (1, 2, 3), "[1, 2, 3]"),
+        (dict, Dict, {1: 2}, "{1: 2}"),
     ],
 )
 def test_collection_no_type(item_type, type_hint, value, arg):
@@ -104,3 +106,15 @@ def test_collection_no_type(item_type, type_hint, value, arg):
     c = ContainerType.setup(f"--a '{arg}'")
     assert c.a == value
 
+
+def test_list_of_dataclasses():
+    @dataclass
+    class Inner(TestSetup):
+        a: int
+
+    @dataclass
+    class Outer(TestSetup):
+        a: List[Inner]
+
+    c = Outer.setup("""--a '[{"a": 1}, {"a": 2}]'""")
+    assert c.a == [Inner(a=1), Inner(a=2)]

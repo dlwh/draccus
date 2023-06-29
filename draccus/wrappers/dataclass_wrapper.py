@@ -160,9 +160,12 @@ def _wrap_field(parent: Optional[Wrapper], field: dataclasses.Field) -> Optional
         return ChoiceWrapper(cast(Type[ChoiceType], field.type), field.name, parent=parent, _field=field)
 
     elif utils.is_tuple_or_list_of_dataclasses(field.type):
-        raise NotImplementedError(
-            f"Field {field.name} is of type {field.type}, which isn't supported yet. (container of a dataclass type)"
-        )
+        logger.debug(f"wrapped field at {field.name} is a list of dataclasses, treating a ordinary field for argparse")
+        field_wrapper = FieldWrapper(field, parent=parent)
+        return field_wrapper
+        # raise NotImplementedError(
+        #     f"Field {field.name} is of type {field.type}, which isn't supported yet. (container of a dataclass type)"
+        # )
 
     elif dataclasses.is_dataclass(field.type):
         # handle a nested dataclass attribute
@@ -170,8 +173,8 @@ def _wrap_field(parent: Optional[Wrapper], field: dataclasses.Field) -> Optional
         child_wrapper = DataclassWrapper(dataclass, name, parent=parent, _field=field)
         return child_wrapper
 
-    elif utils.contains_dataclass_type_arg(field.type):
-        # TODO(dlwh): I don't like this
+    elif utils.is_optional_or_union_with_dataclass_type_arg(field.type):
+        # TODO(dlwh): I don't like this. Add UnionWrapper or something
         dataclass = utils.get_dataclass_type_arg(field.type)  # type: ignore
         name = field.name
         child_wrapper = DataclassWrapper(dataclass, name, default=None, parent=parent, _field=field)

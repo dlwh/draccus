@@ -20,7 +20,7 @@ a few changes to make it more suitable for my use cases. The main changes are:
 
 * Support for subtyping configs (that is, choosing between different configs based on a parameter)
 * WIP: Support for including config files in config files
-* WIP: Better support for type parameters
+* Better support for containers of configs (e.g. a list of configs)
 * Couple of bug fixes
 
 I swear I didn't want to fork it, but the Pyrallis devs (understandably) didn't want to merge some of
