@@ -121,7 +121,7 @@ def test_list_of_dataclasses():
 
     @dataclass
     class Outer(TestSetup):
-        a: List[Inner]
+        a: Optional[List[Inner]]
 
     c = Outer.setup("""--a '[{"a": 1}, {"a": 2}]'""")
     assert c.a == [Inner(a=1), Inner(a=2)]
@@ -140,3 +140,5 @@ b:
         - a: 2
     """
     c = OptionalOuter.setup(config=yaml)
+
+    assert c.b == Outer(a=[Inner(a=1), Inner(a=2)])

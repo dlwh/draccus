@@ -247,15 +247,19 @@ def decode_optional(t: Type[T]) -> Callable[[Optional[Any]], Optional[T]]:
 
 def try_functions(*funcs: Callable[[Any], T]) -> Callable[[Any], Union[T, Any]]:
     """Tries to use the functions in succession, else returns the same value unchanged."""
+    if len(funcs) == 0:
+        raise ValueError("Must provide at least one function to try")
+    elif len(funcs) == 1:
+        return funcs[0]
 
     def _try_functions(val: Any) -> Union[T, Any]:
+        exceptions = []
         for func in funcs:
             try:
                 return func(val)
-            except Exception:
-                continue
-        # If no function worked, raise an exception
-        raise TypeError(f"No valid parsing for value {val}")
+            except Exception as e:
+                exceptions.append(e)
+        raise TypeError(f"No valid parsing for value {val}: {exceptions}") from exceptions[0]
 
     return _try_functions
 
