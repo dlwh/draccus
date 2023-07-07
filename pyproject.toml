@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "draccus"
-version = "0.5"
+version = "0.6"
 authors = [
   { name="David Hall", email="dlwh@cs.stanford.edu" },
     { name="Sidd Karamcheti"},
