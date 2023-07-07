@@ -19,7 +19,7 @@ Draccus is a fork of the excellent [Pyrallis](https://github.com/eladrich/pyrall
 a few changes to make it more suitable for my use cases. The main changes are:
 
 * Support for subtyping configs (that is, choosing between different configs based on a parameter)
-* WIP: Support for including config files in config files
+* Support for including config files in config files
 * Better support for containers of configs (e.g. a list of configs)
 * Couple of bug fixes
 
@@ -81,7 +81,36 @@ model:
   dropout: 0.2
 ```
 
+## Inclusion of Config Files
+
+(This is a difference from Pyrallis.)
+
+We support including config files from other config files via [pyyaml-include](https://github.com/tanbro/pyyaml-include).
+This is useful for splitting up your config into multiple files, or for including a base config file in your config.
+
+It works like this:
+
+```yaml
+# model_config.yaml
+type: bert
+num_layers: 24
+num_heads: 24
+hidden_size: 1024
+dropout: 0.2
+```
+
+```yaml
+# train_config.yaml
+exp_name: my_yaml_exp
+workers: 42
+model: !include model_config.yaml
+```
+
+Note that you can't use `!include` at the top level, or you will get a very confusing error message.
+
 ## More Flexible Configuration with Choice Types
+
+(This is a difference from Pyrallis.)
 
 Choice Types, aka "Sum Types" or "Tagged Unions", are a powerful way to define a choice of types that can be selected at
 runtime. For instance, you might want to choose what kind of model to train, or what kind of optimizer to use.
