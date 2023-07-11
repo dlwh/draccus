@@ -1,14 +1,11 @@
 import logging
 from dataclasses import dataclass, field
-from typing import *
+from typing import Any, ClassVar, List, Optional, Tuple, Type
 
 import pytest
 
 from .testutils import TestSetup
 
-
-# from draccus import choice
-# from draccus.helpers import Serializable
 
 # List of simple attributes to use in tests:
 simple_arguments: List[Tuple[Type, Any, Any]] = [
@@ -46,7 +43,7 @@ def assert_equals_stdout(capsys):
     def strip(string):
         return "".join(string.split())
 
-    def should_equal(expected: str, file_path: str = None):
+    def should_equal(expected: str, file_path: Optional[str] = None):
         out = capsys.readouterr().out
         assert strip(out) == strip(expected), file_path
 

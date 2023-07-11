@@ -31,13 +31,17 @@ class YAMLParser(Parser):
     def parse_string(s):
         import yaml  # type: ignore
 
-        return yaml.safe_load(s)
+        from .yaml_loader import SafeLoaderWithInclusion
+
+        return yaml.load(s, SafeLoaderWithInclusion)
 
     @staticmethod
     def load_config(stream):
         import yaml  # type: ignore
 
-        return yaml.full_load(stream)
+        from .yaml_loader import FullLoaderWithInclusion
+
+        return yaml.load(stream, FullLoaderWithInclusion)
 
     @staticmethod
     def save_config(d, stream=None, **kwargs):
