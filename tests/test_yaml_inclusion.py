@@ -2,6 +2,8 @@ import tempfile
 from enum import Enum, auto
 from pathlib import Path
 
+from tests.conftest import Optimizers
+
 
 class Color(Enum):
     blue: str = auto()  # type: ignore
@@ -52,7 +54,8 @@ embedding_dim: 32
 batch_size: 13
 optimizer: ADAM
 embedding_dim: 16
-""")
+"""
+        )
 
         age_group_path = tmpdir / "age_group.yaml"
         age_group_path.write_text(
@@ -65,9 +68,7 @@ num_units: 16
         config = HyperParameters.setup(f"--config_path {config_path}")
 
         assert config.batch_size == 13
-        assert config.optimizer == "ADAM"
+        assert config.optimizer == Optimizers.ADAM
         assert config.embedding_dim == 32
         assert config.age_group.name == "age_group"
         assert config.age_group.num_units == 16
-
-

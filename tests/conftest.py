@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, ClassVar, List, Optional, Tuple, Type
 
 import pytest
@@ -130,14 +131,13 @@ def TaskHyperParameters():
     return TaskHyperParameters
 
 
+class Optimizers(Enum):
+    ADAM = "ADAM"
+    SGD = "SGD"
+
+
 @pytest.fixture
 def HyperParameters(TaskHyperParameters):
-    from enum import Enum
-
-    class Optimizers(Enum):
-        ADAM = "ADAM"
-        SGD = "SGD"
-
     @dataclass
     class HyperParameters(TestSetup):
         """Hyperparameters of a multi-headed model."""
