@@ -32,7 +32,7 @@ these.
 ## Why `draccus`?
 
 We support everything in Pyrallis (see their examples), but also support subtyping and including config files in config files.
-We still try to maintain their simple, clean
+We still try to maintain their simple, clean YAML-focused approach.
 
 With `draccus` your configuration is linked directly to your pre-defined `dataclass`, allowing you to easily create different configuration structures, including nested ones, using an object-oriented design. The parsed arguments are used to initialize your `dataclass`, giving you the typing hints and automatic code completion of a full `dataclass` object.
 
@@ -106,7 +106,21 @@ workers: 42
 model: !include model_config.yaml
 ```
 
-Note that you can't use `!include` at the top level, or you will get a very confusing error message.
+### Including Configs at Top Level
+
+PyYAML, upon which draccus is based, supports a common YAML extension `<<` for merging keys from multiple maps. We can combine this with `!include` to include a config file:
+
+```yaml
+# base_config.yaml
+type: bert
+lr: 0.001
+
+# train_config.yaml
+<<: !include base_config.yaml
+exp_name: my_yaml_exp
+```
+
+(I don't love this syntax, but it's consistent with PyYAML.)
 
 ## More Flexible Configuration with Choice Types
 
