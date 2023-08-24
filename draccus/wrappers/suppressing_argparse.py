@@ -20,9 +20,8 @@ class SuppressingArgumentParser(ArgumentParser):
         return group
 
     def _handle_conflict_ignore(self, action, conflicting_actions):
-
         # remove all conflicting options
-        for option_string, action in conflicting_actions:
+        for _option_string, action in conflicting_actions:
             action.container._remove_action(action)
 
 
@@ -45,7 +44,6 @@ class _SuppressingArgumentGroup(_ArgumentGroup):
         # don't remove from _group_actions, so that we can still show the old ones in the help message
 
     def _handle_conflict_ignore(self, action, conflicting_actions):
-
         # remove all conflicting options
-        for option_string, action in conflicting_actions:
+        for _option_string, action in conflicting_actions:
             action.container._remove_action(action)

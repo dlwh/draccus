@@ -50,9 +50,9 @@ def test_subclasses_with_same_base_class_no_args():
 
 def test_subclasses_with_same_base_class_with_args():
     import logging
+
     logging.basicConfig(level=logging.DEBUG)
-    ext = Inheritance.setup(
-        "--ext_b.a 10 --ext_c.a 30")
+    ext = Inheritance.setup("--ext_b.a 10 --ext_c.a 30")
     print(ext.get_help_text())
     assert ext.ext_b.a == 10
     assert ext.ext_c.a == 30
@@ -69,6 +69,7 @@ def test_weird_structure():
         n_filters: List[int] = field(default_factory=[16, 32, 64, 64].copy)  # filters per layer
 
     from enum import Enum
+
     class Optimizers(Enum):
         ADAM = "ADAM"
         RMSPROP = "RMSPROP"

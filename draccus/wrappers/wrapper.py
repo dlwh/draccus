@@ -1,12 +1,10 @@
 """Abstract Wrapper base-class for the FieldWrapper and DataclassWrapper."""
-import abc
 import argparse
 from abc import ABC, abstractmethod
 from dataclasses import Field
 from typing import Generic, List, Optional, Type
 
 from draccus.utils import T
-
 
 # We can think of a Wrapper as a node in a tree, where the root is the DataclassWrapper for the root dataclass, and the
 # leaves are the FieldWrappers. (So internal nodes are DataclassWrappers, for now.)
@@ -22,7 +20,7 @@ class Wrapper(Generic[T], ABC):
         if lineage_names[-1] is None:  # root usually won't have a name
             lineage_names = lineage_names[:-1]
 
-        r = list(reversed([self.name] + lineage_names))
+        r = list(reversed([self.name, *lineage_names]))
         return ".".join(r)
 
     def lineage(self) -> List["Wrapper"]:

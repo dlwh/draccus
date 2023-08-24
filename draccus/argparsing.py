@@ -23,7 +23,6 @@ from draccus.utils import Dataclass, PyrallisException
 from draccus.wrappers import DataclassWrapper
 from draccus.wrappers.suppressing_argparse import SuppressingArgumentParser
 
-
 logger = getLogger(__name__)
 
 T = TypeVar("T")
@@ -46,7 +45,9 @@ class ArgumentParser(Generic[T]):
             if sys.version_info < (3, 9):
                 # behavior was functionally True before 3.9
                 if not kwargs["exit_on_error"]:
-                    warnings.warn("ArgumentParser exit_on_error is only available in python 3.9+, removing argument")
+                    warnings.warn(
+                        "ArgumentParser exit_on_error is only available in python 3.9+, removing argument", stacklevel=2
+                    )
                 del kwargs["exit_on_error"]
 
         self.parser = SuppressingArgumentParser(*args, **kwargs)
@@ -135,7 +136,7 @@ class ArgumentParser(Generic[T]):
         if utils.CONFIG_ARG in parsed_arg_values:
             new_config_path = parsed_arg_values[utils.CONFIG_ARG]
             if config_path is not None:
-                warnings.warn(UserWarning(f"Overriding default {config_path} with {new_config_path}"))
+                warnings.warn(UserWarning(f"Overriding default {config_path} with {new_config_path}"), stacklevel=2)
             config_path = new_config_path
             del parsed_arg_values[utils.CONFIG_ARG]
 

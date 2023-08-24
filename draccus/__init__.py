@@ -10,6 +10,5 @@ from .parsers.decoding import decode
 from .parsers.encoding import encode
 from .utils import ParsingError
 
-
 get_config_type = Options.get_config_type
 set_config_type = Options.set_config_type

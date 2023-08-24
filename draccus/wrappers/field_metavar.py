@@ -4,7 +4,6 @@ from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
 from draccus.utils import get_type_arguments, is_optional, is_tuple, is_union
 
-
 T = TypeVar("T")
 
 logger = getLogger(__name__)
@@ -51,7 +50,7 @@ def get_metavar(t: Type) -> Optional[str]:
         args = get_type_arguments(t)
         metavars: List[str] = []
         for type_arg in args:
-            if type_arg is type(None):  # noqa: E721
+            if type_arg is type(None):
                 continue
             metavars.append(get_metavar(type_arg) or "<unknown>")
         metavar = "|".join(map(str, metavars))

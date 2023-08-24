@@ -7,7 +7,6 @@ from typing import Dict, Optional, Type
 from ..choice_types import CHOICE_TYPE_KEY, ChoiceType
 from ..parsers.decoding import has_custom_decoder
 from . import docstring
-from .field_wrapper import FieldWrapper
 from .wrapper import AggregateWrapper, Wrapper
 
 
@@ -58,12 +57,10 @@ class ChoiceWrapper(AggregateWrapper[Type[ChoiceType]]):
         return class_doc
 
     def register_actions(self, parser: argparse.ArgumentParser) -> None:
-        # group = parser.add_argument_group(title=self.title, description=self.description)
         group = parser.add_argument_group(title=self.title, description=self.description)
-
         children = self._children
 
-        # register the type argument. If closed, it's a choice between the known types, otherwise just a string with a fancy desc
+        # Register the type argument. If closed, it's a choice between the known types, otherwise a string description
         dest = self.dest
         if dest is None:
             arg_name = CHOICE_TYPE_KEY
