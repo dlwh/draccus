@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import List, no_type_check
+from typing import List
 
 from draccus import ParsingError
 

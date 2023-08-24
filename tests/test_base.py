@@ -5,7 +5,7 @@ from typing import Any, Type
 import draccus
 from draccus import ParsingError
 
-from .testutils import TestSetup, parametrize, raises, raises_missing_required_arg
+from .testutils import TestSetup, parametrize, raises
 
 
 def test_basic_required_argument(simple_attribute, silent):

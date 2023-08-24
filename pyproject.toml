@@ -1,63 +1,78 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "draccus"
 version = "0.6"
 authors = [
-  { name="David Hall", email="dlwh@cs.stanford.edu" },
-    { name="Sidd Karamcheti"},
+  {name = "David Hall", email = "dlwh@cs.stanford.edu"},
+  {name = "Siddharth Karamcheti", email = "skaramcheti@cs.stanford.edu"},
 ]
-description = "A framework for simple dataclass-based configurations."
+description = "A slightly opinionated framework for simple dataclass-based configurations based on Pyrallis."
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
 classifiers = [
-"Programming Language :: Python :: 3",
-"License :: OSI Approved :: MIT License",
-"Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
-  "typing-inspect>=0.9.0",
-  "dataclasses; python_version < '3.7'",
-  "pyyaml",
-  "mergedeep",
-  "pyyaml-include>=1.3"
+    "mergedeep",
+    "pyyaml",
+    "pyyaml-include",
+    "toml",
+    "typing-inspect",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "mypy",
+    "pre-commit",
+    "pytest",
+    "ruff",
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/dlwh/draccus"
-"Bug Tracker" = "https://github.com/dlwh/draccus/issues"
-
-[tool.hatch.extras]
-test = ["pytest"]
-
-[tool.hatch.scripts."hatch.linter"]
-exclude = ["migrations"]
-
+homepage = "https://github.com/dlwh/draccus"
+repository = "https://github.com/dlwh/draccus"
+issues = "https://github.com/dlwh/draccus/issues"
 
 [tool.black]
-line-length = 119
-target-version = ["py310"]
+line-length = 121
+target-version = ["py38", "py39", "py310"]
 preview = true
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-lines_after_imports = 2
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-line_length = 119
 
 [tool.mypy]
 python_version = "3.8"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
+addopts = "--doctest-modules --ignore=tests/draccus_choice_plugins"
 testpaths = [
     "tests",
 ]
-addopts = "--ignore=tests/draccus_choice_plugins"
+
+[tool.ruff]
+line-length = 121
+target-version = "py38"
+select = ["A", "B", "E", "F", "I", "RUF", "W"]
+ignore = ["A003", "RUF009"]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["E402", "F401"]
+"**/tests/*" = ["E402", "E741", "F401", "F403", "F405",]
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["cache"]
+
+[tool.setuptools.package-data]
+"draccus" = ["py.typed"]

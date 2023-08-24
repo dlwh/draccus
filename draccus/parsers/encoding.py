@@ -17,10 +17,9 @@ from enum import Enum
 from functools import singledispatch
 from logging import getLogger
 from os import PathLike
-from typing import Any, Dict, Hashable, List, Tuple, TypeVar, Union
+from typing import Any, Dict, Hashable, List, Tuple, Union
 
 from draccus.choice_types import CHOICE_TYPE_KEY, ChoiceType
-
 
 logger = getLogger(__name__)
 

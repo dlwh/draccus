@@ -13,29 +13,28 @@
 
 # Draccus - Slightly Less Simple Configuration with Dataclasses
 
-> Draccus: “a large herbivorous reptilian creature, known for their ability to breathe fire.”
+> Draccus: "A large herbivorous reptilian creature, known for their ability to breathe fire."
 
 Draccus is a fork of the excellent [Pyrallis](https://github.com/eladrich/pyrallis) library, but with
-a few changes to make it more suitable for my use cases. The main changes are:
+a few changes to make it more suitable for more complex use cases. The main changes are:
 
 * Support for subtyping configs (that is, choosing between different configs based on a parameter)
 * Support for including config files in config files
 * Better support for containers of configs (e.g. a list of configs)
-* Couple of bug fixes
 
-I swear I didn't want to fork it, but the Pyrallis devs (understandably) didn't want to merge some of
-these.
+I swear I didn't want to fork it, but the Pyrallis devs (understandably) didn't want to merge some of these.
 
 
 <p align="center"><img src="https://github.com/eladrich/pyrallis/raw/master/docs/argparse2pyrallis.gif" alt="GIF" width="100%" /></p>
 
 ## Why `draccus`?
 
-We support everything in Pyrallis (see their examples), but also support subtyping and including config files in config files.
-We still try to maintain their simple, clean YAML-focused approach.
+We support everything in Pyrallis (see their examples), but also support subtyping and including config files within
+config files. We try to maintain the original repository's simple, clean approach.
 
-With `draccus` your configuration is linked directly to your pre-defined `dataclass`, allowing you to easily create different configuration structures, including nested ones, using an object-oriented design. The parsed arguments are used to initialize your `dataclass`, giving you the typing hints and automatic code completion of a full `dataclass` object.
-
+With `draccus` your configuration is linked directly to your pre-defined `dataclass`, allowing you to easily create
+different configuration structures, including nested ones, using an object-oriented design. The parsed arguments are
+used to initialize your `dataclass`, inheriting the corresponding type hints and code completion features.
 
 ## My First Draccus Example
 
@@ -44,22 +43,20 @@ With `draccus` your configuration is linked directly to your pre-defined `datacl
 Here's a simple example of how to use `draccus` to parse arguments into a `dataclass`:
 
 ```python
-import dataclasses
 from dataclasses import dataclass
 import draccus
 
 
 @dataclass
 class TrainConfig:
-    """ Training config for Machine Learning """
-    workers: int = 8  # The number of workers for training
+    """Training Config for Machine Learning"""
+    workers: int = 8               # The number of workers for training
     exp_name: str = 'default_exp'  # The experiment name
 
 
-def main():
-    cfg = draccus.parse(config_class=TrainConfig)
-    print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
-
+@draccus.wrap()
+def main(cfg: TrainConfig):
+    print(f"Training {cfg.exp_name} with {cfg.workers} workers...")
 ```
 
 The arguments can then be specified using command-line arguments, a `yaml` configuration file, or both.
@@ -108,7 +105,8 @@ model: !include model_config.yaml
 
 ### Including Configs at Top Level
 
-PyYAML, upon which draccus is based, supports a common YAML extension `<<` for merging keys from multiple maps. We can combine this with `!include` to include a config file:
+PyYAML, upon which draccus is based, supports a common YAML extension `<<` for merging keys from multiple maps.
+We can combine this with `!include` to include a config file:
 
 ```yaml
 # base_config.yaml
@@ -136,7 +134,6 @@ choice type is used to select the subclass.
 Here's a modified version of the example above, where we use a `ChoiceRegistry` to define a choice of model types:
 
 ```python
-import dataclasses
 from dataclasses import dataclass
 import draccus
 
@@ -148,18 +145,18 @@ class ModelConfig(draccus.ChoiceRegistry):
 
 
 @ModelConfig.register_subclass('gpt')
-@dataclasses.dataclass
+@dataclass
 class GPTConfig(ModelConfig):
-    """ GPT Model Config """
+    """GPT Model Config"""
     num_layers: int = 12
     num_heads: int = 12
     hidden_size: int = 768
 
 
 @ModelConfig.register_subclass('bert')
-@dataclasses.dataclass
+@dataclass
 class BERTConfig(ModelConfig):
-    """ BERT Model Config """
+    """BERT Model Config"""
     num_layers: int = 12
     num_heads: int = 12
     hidden_size: int = 768
@@ -168,17 +165,16 @@ class BERTConfig(ModelConfig):
 
 @dataclass
 class TrainConfig:
-    """ Training config for Machine Learning """
-    workers: int = 8  # The number of workers for training
-    exp_name: str = 'default_exp'  # The experiment name
+    """Training Config for Machine Learning"""
+    workers: int = 8                  # The number of workers for training
+    exp_name: str = 'default_exp'     # The experiment name
 
     model: ModelConfig = GPTConfig()  # The model configuration
 
 
-def main():
-    cfg = draccus.parse(config_class=TrainConfig)
-    print(f'Training {cfg.exp_name} with {cfg.workers} workers...')
-
+@draccus.wrap()
+def main(cfg: TrainConfig):
+    print(f"Training {cfg.exp_name} with {cfg.workers} workers...")
 ```
 
 The arguments can then be specified using command-line arguments, a `yaml` configuration file, or both.

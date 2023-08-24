@@ -9,7 +9,6 @@ from .. import utils
 from . import docstring
 from .wrapper import Wrapper
 
-
 logger = getLogger(__name__)
 
 
@@ -344,7 +343,7 @@ def only_keep_action_args(options: Dict[str, Any], action: Union[str, Any]) -> D
         logger.debug("Constructor takes var args. returning all options.")
         return options
 
-    args_to_keep = argspec.args + ["action"]
+    args_to_keep = [*argspec.args, "action"]
 
     kept_options, deleted_options = utils.keep_keys(options, args_to_keep)
     if deleted_options:

@@ -1,8 +1,7 @@
 import shlex
-import string
 import sys
 import tempfile
-from contextlib import contextmanager, redirect_stderr, suppress
+from contextlib import contextmanager, redirect_stderr
 from io import StringIO
 from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, Type, TypeVar, cast
 
@@ -10,7 +9,6 @@ import pytest
 
 import draccus
 from draccus import ParsingError
-
 
 xfail = pytest.mark.xfail
 parametrize = pytest.mark.parametrize

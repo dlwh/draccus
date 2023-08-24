@@ -1,6 +1,7 @@
 import dataclasses
 
 
+# ruff: noqa: A002
 def field(
     *,
     default=dataclasses.MISSING,
@@ -18,8 +19,12 @@ def field(
         from copy import deepcopy
 
         copy_val = default
-        default_factory = lambda: deepcopy(copy_val)
+
+        def default_factory():
+            return deepcopy(copy_val)
+
         default = dataclasses.MISSING
+
     return dataclasses.field(
         default=default,
         default_factory=default_factory,

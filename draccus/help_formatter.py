@@ -5,7 +5,6 @@ from typing import Type
 
 from draccus.wrappers.field_metavar import get_metavar
 
-
 logger = getLogger(__name__)
 
 

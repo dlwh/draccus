@@ -1,4 +1,4 @@
-from typing import Type, TypeVar
+from typing import Type
 
 from draccus import utils
 from draccus.options import Options
@@ -23,8 +23,8 @@ def save_config(d, stream=None, **kwargs):
 
 
 def load(t: Type[Dataclass], stream):
-    dict = load_config(stream)
-    return decode(t, dict)
+    dictionary = load_config(stream)
+    return decode(t, dictionary)
 
 
 def dump(config: Dataclass, stream=None, omit_defaults: bool = False, **kwargs):

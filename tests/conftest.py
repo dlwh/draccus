@@ -7,7 +7,6 @@ import pytest
 
 from .testutils import TestSetup
 
-
 # List of simple attributes to use in tests:
 simple_arguments: List[Tuple[Type, Any, Any]] = [
     # type, passed value, expected (parsed) value

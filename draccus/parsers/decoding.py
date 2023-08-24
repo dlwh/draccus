@@ -1,6 +1,5 @@
 """ Functions for decoding dataclass fields from "raw" values (e.g. from json).
 """
-import inspect
 import typing
 from collections import OrderedDict
 from dataclasses import MISSING, Field, fields, is_dataclass
@@ -24,7 +23,6 @@ from draccus.utils import (
     is_tuple,
     is_union,
 )
-
 
 logger = getLogger(__name__)
 
@@ -82,7 +80,7 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
             raise ParsingError(
                 f"Failed when parsing value='{raw_value}' into field \"{cls}.{name}\" of type"
                 f' {field.type}.\n\tUnderlying error is "{format_error(e)}"'
-            )
+            ) from e
 
         if field.init:
             init_args[name] = field_value
@@ -121,8 +119,8 @@ def decode_choice_class(cls: Type[T], raw_value: Any) -> T:
 
     try:
         subcls = cls.get_choice_class(choice_type)
-    except KeyError:
-        raise ParsingError(f"Couldn't find a choice class for '{choice_type}' in {cls}")
+    except KeyError as e:
+        raise ParsingError(f"Couldn't find a choice class for '{choice_type}' in {cls}") from e
 
     raw_value = raw_value.copy()
     raw_value.pop(CHOICE_TYPE_KEY)
@@ -282,7 +280,7 @@ def decode_list(t: Type[T]) -> Callable[[List[Any]], List[T]]:
 
     def _decode_list(val: List[Any]) -> List[T]:
         # assert type(val) == list
-        if type(val) != list:
+        if not isinstance(val, list):
             raise Exception(f"The given value='{val}' is not of a valid input")
         return [decode_item(v) for v in val]
 

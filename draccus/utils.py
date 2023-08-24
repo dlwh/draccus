@@ -30,7 +30,6 @@ from typing import (
 
 import typing_inspect as tpi
 
-
 try:
     from typing import get_args
 except ImportError:
@@ -39,10 +38,10 @@ except ImportError:
         return getattr(some_type, "__args__", ())
 
 
-try:
-    from typing import get_origin  # type: ignore
-except ImportError:
-    from typing_inspect import get_origin  # type: ignore
+# try:
+#     from typing import get_origin  # type: ignore
+# except ImportError:
+#     pass  # type: ignore
 
 
 try:
@@ -209,8 +208,7 @@ def get_dataclass_type_arg(t: Type) -> Optional[Type]:
 def is_optional_or_union_with_dataclass_type_arg(t: Type) -> bool:
     if is_union(t) or is_optional(t):
         return any(
-            is_dataclass_type(arg) or is_optional_or_union_with_dataclass_type_arg(arg)
-            for arg in get_type_arguments(t)
+            is_dataclass_type(arg) or is_optional_or_union_with_dataclass_type_arg(arg) for arg in get_type_arguments(t)
         )
     return False
 

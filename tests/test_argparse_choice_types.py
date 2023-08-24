@@ -1,5 +1,4 @@
 import dataclasses
-from argparse import ArgumentError
 
 import pytest
 
@@ -55,7 +54,6 @@ class Something(TestSetup):
 
 
 def test_choice_registry_examine_help():
-
     # TODO: why is the default: None here?
     target = """
 usage: draccus [-h] [--config_path str] [--person.type {adult,child}]

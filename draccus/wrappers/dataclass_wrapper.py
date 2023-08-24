@@ -1,6 +1,5 @@
 import argparse
 import dataclasses
-from dataclasses import _MISSING_TYPE
 from logging import getLogger
 from typing import Dict, List, Optional, Type, Union, cast
 
@@ -14,7 +13,6 @@ from . import docstring
 from .choice_wrapper import ChoiceWrapper
 from .field_wrapper import FieldWrapper
 from .wrapper import AggregateWrapper, Wrapper
-
 
 logger = getLogger(__name__)
 

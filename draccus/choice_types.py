@@ -34,11 +34,8 @@ All registered types must be *dataclasses*
 
 import functools
 import importlib
-import os
 import pkgutil
-import sys
 from typing import Any, Callable, ClassVar, Dict, Optional, Protocol, Type, TypeVar, overload, runtime_checkable
-
 
 T = TypeVar("T")
 
@@ -197,7 +194,7 @@ class PluginRegistry(ChoiceRegistryBase):
             # the name.
             return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
-        for finder, pkg_name, ispkg in iter_namespace(package_module):
+        for _finder, pkg_name, _ispkg in iter_namespace(package_module):
             importlib.import_module(pkg_name)
             # registration should happen in the initialization of the package, so importing is sufficient
 
