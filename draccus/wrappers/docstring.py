@@ -18,6 +18,28 @@ class AttributeDocString:
     docstring_below: str = ""
 
 
+# Default Help Orderings
+HELP_ORDERS = {
+    "inline": ["comment_inline", "comment_above", "docstring_below"],
+    "above": ["comment_above", "comment_inline", "docstring_below"],
+    "below": ["docstring_below", "comment_inline", "comment_above"],
+}
+
+
+def get_preferred_help_text(doc: AttributeDocString, preferred_help: str = "inline") -> Optional[str]:
+    if doc is None:
+        return None
+
+    # Iterate in the preferred order with "default" order = < inline | above | below >
+    for doc_attr in HELP_ORDERS[preferred_help]:
+        help_text = getattr(doc, doc_attr)
+        if help_text != "":
+            return help_text
+
+    # No valid help description found... return None
+    return None
+
+
 def get_attribute_docstring(some_dataclass: Type, field_name: str) -> AttributeDocString:
     """Returns the docstrings of a dataclass field.
     NOTE: a docstring can either be:

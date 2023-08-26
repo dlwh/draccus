@@ -26,6 +26,7 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
         default: Optional[Union[Dataclass, Dict]] = None,
         parent: Optional["Wrapper"] = None,
         _field: Optional[dataclasses.Field] = None,
+        preferred_help: str = "inline",
     ):
         self.dataclass = dataclass
         self._name = name
@@ -38,6 +39,9 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
         # the field of the parent, which contains this child dataclass.
         self._field = _field
 
+        # preferred parse for docstring / help text in < inline | above | below >
+        self.preferred_help = preferred_help
+
         # the default values
         self._defaults: List[Dataclass] = []
 
@@ -48,7 +52,7 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
         self.optional: bool = False
 
         for field in dataclasses.fields(self.dataclass):  # type: ignore
-            child = _wrap_field(self, field)
+            child = _wrap_field(self, field, preferred_help=self.preferred_help)
             if child is not None:
                 self._children.append(child)
 
@@ -115,13 +119,9 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
     def description(self) -> str:
         if self.parent and self._field:
             doc = docstring.get_attribute_docstring(self.parent.type, self._field.name)
-            if doc is not None:
-                if doc.docstring_below:
-                    return doc.docstring_below
-                elif doc.comment_above:
-                    return doc.comment_above
-                elif doc.comment_inline:
-                    return doc.comment_inline
+            help_text = docstring.get_preferred_help_text(doc, preferred_help=self.preferred_help)
+            if help_text is not None:
+                return help_text
         class_doc = self.dataclass.__doc__ or ""
         if class_doc.startswith(f"{self.dataclass.__name__}("):
             return ""  # The base dataclass doc looks confusing, remove it
@@ -146,7 +146,9 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
         return self.dataclass
 
 
-def _wrap_field(parent: Optional[Wrapper], field: dataclasses.Field) -> Optional[Wrapper]:
+def _wrap_field(
+    parent: Optional[Wrapper], field: dataclasses.Field, preferred_help: str = "inline"
+) -> Optional[Wrapper]:
     if not field.init:
         return None
 
@@ -155,11 +157,13 @@ def _wrap_field(parent: Optional[Wrapper], field: dataclasses.Field) -> Optional
     #     logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
     #     return field_wrapper
     elif utils.is_choice_type(field.type):
-        return ChoiceWrapper(cast(Type[ChoiceType], field.type), field.name, parent=parent, _field=field)
+        return ChoiceWrapper(
+            cast(Type[ChoiceType], field.type), field.name, parent=parent, _field=field, preferred_help=preferred_help
+        )
 
     elif utils.is_tuple_or_list_of_dataclasses(field.type):
         logger.debug(f"wrapped field at {field.name} is a list of dataclasses, treating a ordinary field for argparse")
-        field_wrapper = FieldWrapper(field, parent=parent)
+        field_wrapper = FieldWrapper(field, parent=parent, preferred_help=preferred_help)
         return field_wrapper
         # raise NotImplementedError(
         #     f"Field {field.name} is of type {field.type}, which isn't supported yet. (container of a dataclass type)"
@@ -168,21 +172,23 @@ def _wrap_field(parent: Optional[Wrapper], field: dataclasses.Field) -> Optional
     elif dataclasses.is_dataclass(field.type):
         # handle a nested dataclass attribute
         dataclass, name = (cast(DataclassType, field.type)), field.name
-        child_wrapper = DataclassWrapper(dataclass, name, parent=parent, _field=field)
+        child_wrapper = DataclassWrapper(dataclass, name, parent=parent, _field=field, preferred_help=preferred_help)
         return child_wrapper
 
     elif utils.is_optional_or_union_with_dataclass_type_arg(field.type):
         # TODO(dlwh): I don't like this. Add UnionWrapper or something
         dataclass = utils.get_dataclass_type_arg(field.type)  # type: ignore
         name = field.name
-        child_wrapper = DataclassWrapper(dataclass, name, default=None, parent=parent, _field=field)
+        child_wrapper = DataclassWrapper(
+            dataclass, name, default=None, parent=parent, _field=field, preferred_help=preferred_help
+        )
         child_wrapper.required = False
         child_wrapper.optional = True
         return child_wrapper
 
     else:
         # a normal attribute
-        field_wrapper = FieldWrapper(field, parent=parent)
+        field_wrapper = FieldWrapper(field, parent=parent, preferred_help=preferred_help)
         logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
         # self._children.append(field_wrapper)
         return field_wrapper

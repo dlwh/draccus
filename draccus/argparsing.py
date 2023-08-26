@@ -4,6 +4,7 @@
 import argparse
 import dataclasses
 import inspect
+import os
 import sys
 import warnings
 from argparse import HelpFormatter, Namespace
@@ -34,6 +35,7 @@ class ArgumentParser(Generic[T]):
         config_class: Type[T],
         config_path: Optional[Union[Path, str]] = None,
         formatter_class: Type[HelpFormatter] = SimpleHelpFormatter,
+        preferred_help: str = "inline",
         *args,
         **kwargs,
     ):
@@ -58,6 +60,8 @@ class ArgumentParser(Generic[T]):
 
         self.config_path = config_path
         self.config_class = config_class
+        self.preferred_help = preferred_help
+        self._assert_preferred_help()
 
         self._assert_no_conflicts()
         self.parser.add_argument(
@@ -78,8 +82,15 @@ class ArgumentParser(Generic[T]):
             default = dataclass if default is None else default
             dataclass = type(dataclass)
 
-        new_wrapper = dataclass_wrapper_class(dataclass, default=default)
+        new_wrapper = dataclass_wrapper_class(dataclass, default=default, preferred_help=self.preferred_help)
         new_wrapper.register_actions(parser=self.parser)
+
+    def _assert_preferred_help(self):
+        """Checks that `self.prefer_help` is valid."""
+        if self.preferred_help not in {"inline", "above", "below"}:
+            raise PyrallisException(
+                f"Value `prefer_help = {self.preferred_help}` not supported; must be one of < inline | above | below >"
+            )
 
     def _assert_no_conflicts(self):
         """Checks for a field name that conflicts with utils.CONFIG_ARG"""
@@ -158,6 +169,7 @@ def parse(
     args: Optional[Sequence[str]] = None,
     prog: Optional[str] = None,
     exit_on_error: bool = True,
+    preferred_help: str = "inline",
 ) -> T:
     """
     Parses the command line arguments and returns an instance of the config class.
@@ -168,18 +180,25 @@ def parse(
         args: The command line arguments to parse. If None, defaults to sys.argv[1:].
         prog: The name of the program (for the help message).
         exit_on_error: Whether to exit if an error occurs.
+        preferred_help: Preferred location to parse help text for fields (< "inline" | "above" | "below" >)
     """
-    parser = ArgumentParser(config_class=config_class, config_path=config_path, exit_on_error=exit_on_error, prog=prog)
+    parser = ArgumentParser(
+        config_class=config_class,
+        config_path=config_path,
+        exit_on_error=exit_on_error,
+        prog=prog,
+        preferred_help=preferred_help,
+    )
     return parser.parse_args(args)
 
 
-def wrap(config_path=None):
+def wrap(config_path: Optional[os.PathLike] = None, preferred_help: str = "inline"):
     def wrapper_outer(fn):
         @wraps(fn)
         def wrapper_inner(*args, **kwargs):
             argspec = inspect.getfullargspec(fn)
             argtype = argspec.annotations[argspec.args[0]]
-            cfg = parse(config_class=argtype, config_path=config_path)
+            cfg = parse(config_class=argtype, config_path=config_path, preferred_help=preferred_help)
             response = fn(cfg, *args, **kwargs)
             return response
 

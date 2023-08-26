@@ -18,6 +18,7 @@ class ChoiceWrapper(AggregateWrapper[Type[ChoiceType]]):
         # default: Optional[Union[Dataclass, Dict]] = None,
         parent: Optional[Wrapper] = None,
         _field: Optional[dataclasses.Field] = None,
+        preferred_help: str = "inline",
     ):
         self.choice_type = choice_type
         self._name = name
@@ -25,6 +26,9 @@ class ChoiceWrapper(AggregateWrapper[Type[ChoiceType]]):
         # self.default = default
         self._parent = parent
         self._field = _field
+
+        # preferred parse for docstring / help text in < inline | above | below >
+        self.preferred_help = preferred_help
 
         self._required: bool = False
         self._explicit: bool = False
@@ -44,13 +48,9 @@ class ChoiceWrapper(AggregateWrapper[Type[ChoiceType]]):
     def description(self) -> str:
         if self.parent and self._field:
             doc = docstring.get_attribute_docstring(self.parent.type, self._field.name)
-            if doc is not None:
-                if doc.docstring_below:
-                    return doc.docstring_below
-                elif doc.comment_above:
-                    return doc.comment_above
-                elif doc.comment_inline:
-                    return doc.comment_inline
+            help_text = docstring.get_preferred_help_text(doc, preferred_help=self.preferred_help)
+            if help_text is not None:
+                return help_text
         class_doc = self.choice_type.__doc__ or ""
         if class_doc.startswith(f"{self.choice_type.__name__}("):
             return ""  # The base dataclass doc looks confusing, remove it
