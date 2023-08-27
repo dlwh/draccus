@@ -5,7 +5,7 @@ import inspect
 from dataclasses import dataclass
 from enum import Enum
 from logging import getLogger
-from typing import List, Optional, Type
+from typing import Dict, List, Optional, Type, Union
 
 logger = getLogger(__name__)
 
@@ -26,7 +26,7 @@ class HelpOrderEnum(str, Enum):
 
 
 # Default Help Orderings
-HELP_ORDERS = {
+HELP_ORDERS: Dict[Union[str, HelpOrderEnum], List[str]] = {
     HelpOrderEnum.inline: ["comment_inline", "docstring_below", "comment_above"],
     HelpOrderEnum.above: ["comment_above", "docstring_below", "comment_inline"],
     HelpOrderEnum.below: ["docstring_below", "comment_inline", "comment_above"],
@@ -34,7 +34,7 @@ HELP_ORDERS = {
 
 
 def get_preferred_help_text(
-    doc: AttributeDocString, preferred_help: HelpOrderEnum = HelpOrderEnum.inline
+    doc: AttributeDocString, preferred_help: Union[str, HelpOrderEnum] = HelpOrderEnum.inline
 ) -> Optional[str]:
     # Iterate in the preferred order with "default" order = < inline | above | below >
     for doc_attr in HELP_ORDERS[preferred_help]:

@@ -36,7 +36,7 @@ class ArgumentParser(Generic[T]):
         config_class: Type[T],
         config_path: Optional[Union[Path, str]] = None,
         formatter_class: Type[HelpFormatter] = SimpleHelpFormatter,
-        preferred_help: HelpOrderEnum = HelpOrderEnum.inline,
+        preferred_help: Union[str, HelpOrderEnum] = HelpOrderEnum.inline,
         *args,
         **kwargs,
     ):
@@ -170,7 +170,7 @@ def parse(
     args: Optional[Sequence[str]] = None,
     prog: Optional[str] = None,
     exit_on_error: bool = True,
-    preferred_help: HelpOrderEnum = HelpOrderEnum.inline,
+    preferred_help: Union[str, HelpOrderEnum] = HelpOrderEnum.inline,
 ) -> T:
     """
     Parses the command line arguments and returns an instance of the config class.
@@ -193,7 +193,7 @@ def parse(
     return parser.parse_args(args)
 
 
-def wrap(config_path: Optional[os.PathLike] = None, preferred_help: HelpOrderEnum = HelpOrderEnum.inline):
+def wrap(config_path: Optional[os.PathLike] = None, preferred_help: Union[str, HelpOrderEnum] = HelpOrderEnum.inline):
     def wrapper_outer(fn):
         @wraps(fn)
         def wrapper_inner(*args, **kwargs):
