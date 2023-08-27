@@ -22,6 +22,7 @@ from draccus.help_formatter import SimpleHelpFormatter
 from draccus.parsers import decoding
 from draccus.utils import Dataclass, PyrallisException
 from draccus.wrappers import DataclassWrapper
+from draccus.wrappers.docstring import HelpOrderEnum
 from draccus.wrappers.suppressing_argparse import SuppressingArgumentParser
 
 logger = getLogger(__name__)
@@ -35,7 +36,7 @@ class ArgumentParser(Generic[T]):
         config_class: Type[T],
         config_path: Optional[Union[Path, str]] = None,
         formatter_class: Type[HelpFormatter] = SimpleHelpFormatter,
-        preferred_help: str = "inline",
+        preferred_help: HelpOrderEnum = HelpOrderEnum.inline,
         *args,
         **kwargs,
     ):
@@ -169,7 +170,7 @@ def parse(
     args: Optional[Sequence[str]] = None,
     prog: Optional[str] = None,
     exit_on_error: bool = True,
-    preferred_help: str = "inline",
+    preferred_help: HelpOrderEnum = HelpOrderEnum.inline,
 ) -> T:
     """
     Parses the command line arguments and returns an instance of the config class.
@@ -192,7 +193,7 @@ def parse(
     return parser.parse_args(args)
 
 
-def wrap(config_path: Optional[os.PathLike] = None, preferred_help: str = "inline"):
+def wrap(config_path: Optional[os.PathLike] = None, preferred_help: HelpOrderEnum = HelpOrderEnum.inline):
     def wrapper_outer(fn):
         @wraps(fn)
         def wrapper_inner(*args, **kwargs):

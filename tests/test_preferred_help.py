@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from draccus.wrappers.docstring import get_attribute_docstring, get_preferred_help_text
+from draccus.wrappers.docstring import HelpOrderEnum, get_attribute_docstring, get_preferred_help_text
 
 from .testutils import TestSetup
 
@@ -26,7 +26,7 @@ def test_get_preferred_help_text():
     a_help_inline = get_preferred_help_text(a_docstring, "inline")
     assert a_help_inline == "Parameter (int) controlling number of iterations"
 
-    a_help_above = get_preferred_help_text(a_docstring, "above")
+    a_help_above = get_preferred_help_text(a_docstring, HelpOrderEnum.above)
     assert a_help_above != "# fmt: off"
 
     # If "preferred" doesn't exist, goes through "default" order --> "inline" --> "above" --> "below"

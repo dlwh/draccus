@@ -32,7 +32,12 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
     def field(self) -> dataclasses.Field:
         return self._field
 
-    def __init__(self, field: dataclasses.Field, parent: Optional[Wrapper] = None, preferred_help: str = "inline"):
+    def __init__(
+        self,
+        field: dataclasses.Field,
+        parent: Optional[Wrapper] = None,
+        preferred_help: docstring.HelpOrderEnum = docstring.HelpOrderEnum.inline,
+    ):
         self._field = field
         self._parent: Optional[Wrapper] = parent
         # Holders used to 'cache' the properties.

@@ -18,7 +18,7 @@ class ChoiceWrapper(AggregateWrapper[Type[ChoiceType]]):
         # default: Optional[Union[Dataclass, Dict]] = None,
         parent: Optional[Wrapper] = None,
         _field: Optional[dataclasses.Field] = None,
-        preferred_help: str = "inline",
+        preferred_help: docstring.HelpOrderEnum = docstring.HelpOrderEnum.inline,
     ):
         self.choice_type = choice_type
         self._name = name
