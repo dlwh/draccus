@@ -4,7 +4,9 @@
 import inspect
 from dataclasses import dataclass
 from logging import getLogger
-from typing import List, Optional, Type
+from typing import Dict, List, Optional, Type
+
+from draccus.utils import StringHolderEnum
 
 logger = getLogger(__name__)
 
@@ -16,6 +18,31 @@ class AttributeDocString:
     comment_above: str = ""
     comment_inline: str = ""
     docstring_below: str = ""
+
+
+class HelpOrder(StringHolderEnum):
+    inline = "inline"
+    above = "above"
+    below = "below"
+
+
+# Default Help Orderings
+HELP_ORDERS: Dict[str, List[str]] = {
+    HelpOrder.inline: ["comment_inline", "docstring_below", "comment_above"],
+    HelpOrder.above: ["comment_above", "docstring_below", "comment_inline"],
+    HelpOrder.below: ["docstring_below", "comment_inline", "comment_above"],
+}
+
+
+def get_preferred_help_text(doc: AttributeDocString, preferred_help: str = HelpOrder.inline) -> Optional[str]:
+    # Iterate in the preferred order with "default" order = < inline | above | below >
+    for doc_attr in HELP_ORDERS[preferred_help]:
+        help_text = getattr(doc, doc_attr)
+        if help_text != "":
+            return help_text
+
+    # No valid help description found... return None
+    return None
 
 
 def get_attribute_docstring(some_dataclass: Type, field_name: str) -> AttributeDocString:

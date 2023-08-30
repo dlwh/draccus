@@ -32,7 +32,12 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
     def field(self) -> dataclasses.Field:
         return self._field
 
-    def __init__(self, field: dataclasses.Field, parent: Optional[Wrapper] = None):
+    def __init__(
+        self,
+        field: dataclasses.Field,
+        parent: Optional[Wrapper] = None,
+        preferred_help: str = docstring.HelpOrder.inline,
+    ):
         self._field = field
         self._parent: Optional[Wrapper] = parent
         # Holders used to 'cache' the properties.
@@ -46,6 +51,9 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         # the argparse-related options:
         self._arg_options: Dict[str, Any] = {}
         self._type: Optional[Type[Any]] = None
+
+        # preferred parse for docstring / help text in < inline | above | below >
+        self.preferred_help = preferred_help
 
         # stores the resulting values for each of the destination attributes.
         self._results: Dict[str, Any] = {}
@@ -247,12 +255,9 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
             logger.debug(f"Couldn't find attribute docstring for field {self.name}, {e}")
             self._docstring = docstring.AttributeDocString()
 
-        if self._docstring.docstring_below:
-            self._help = self._docstring.docstring_below
-        elif self._docstring.comment_above:
-            self._help = self._docstring.comment_above
-        elif self._docstring.comment_inline:
-            self._help = self._docstring.comment_inline
+        help_text = docstring.get_preferred_help_text(self._docstring, preferred_help=self.preferred_help)
+        if help_text is not None:
+            self._help = help_text
         return self._help
 
     @help.setter
