@@ -2,7 +2,7 @@ import argparse
 import dataclasses
 from dataclasses import Field
 from functools import cached_property
-from typing import Dict, Optional, Type, Union
+from typing import Dict, Optional, Type
 
 from ..choice_types import CHOICE_TYPE_KEY, ChoiceType
 from ..parsers.decoding import has_custom_decoder
@@ -18,7 +18,7 @@ class ChoiceWrapper(AggregateWrapper[Type[ChoiceType]]):
         # default: Optional[Union[Dataclass, Dict]] = None,
         parent: Optional[Wrapper] = None,
         _field: Optional[dataclasses.Field] = None,
-        preferred_help: Union[str, docstring.HelpOrderEnum] = docstring.HelpOrderEnum.inline,
+        preferred_help: str = docstring.HelpOrder.inline,
     ):
         self.choice_type = choice_type
         self._name = name

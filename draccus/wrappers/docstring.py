@@ -3,9 +3,10 @@
 """
 import inspect
 from dataclasses import dataclass
-from enum import Enum
 from logging import getLogger
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Optional, Type
+
+from draccus.utils import StringHolderEnum
 
 logger = getLogger(__name__)
 
@@ -19,23 +20,21 @@ class AttributeDocString:
     docstring_below: str = ""
 
 
-class HelpOrderEnum(str, Enum):
+class HelpOrder(StringHolderEnum):
     inline = "inline"
     above = "above"
     below = "below"
 
 
 # Default Help Orderings
-HELP_ORDERS: Dict[Union[str, HelpOrderEnum], List[str]] = {
-    HelpOrderEnum.inline: ["comment_inline", "docstring_below", "comment_above"],
-    HelpOrderEnum.above: ["comment_above", "docstring_below", "comment_inline"],
-    HelpOrderEnum.below: ["docstring_below", "comment_inline", "comment_above"],
+HELP_ORDERS: Dict[str, List[str]] = {
+    HelpOrder.inline: ["comment_inline", "docstring_below", "comment_above"],
+    HelpOrder.above: ["comment_above", "docstring_below", "comment_inline"],
+    HelpOrder.below: ["docstring_below", "comment_inline", "comment_above"],
 }
 
 
-def get_preferred_help_text(
-    doc: AttributeDocString, preferred_help: Union[str, HelpOrderEnum] = HelpOrderEnum.inline
-) -> Optional[str]:
+def get_preferred_help_text(doc: AttributeDocString, preferred_help: str = HelpOrder.inline) -> Optional[str]:
     # Iterate in the preferred order with "default" order = < inline | above | below >
     for doc_attr in HELP_ORDERS[preferred_help]:
         help_text = getattr(doc, doc_attr)

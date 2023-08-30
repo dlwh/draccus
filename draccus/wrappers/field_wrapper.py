@@ -36,7 +36,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         self,
         field: dataclasses.Field,
         parent: Optional[Wrapper] = None,
-        preferred_help: Union[str, docstring.HelpOrderEnum] = docstring.HelpOrderEnum.inline,
+        preferred_help: str = docstring.HelpOrder.inline,
     ):
         self._field = field
         self._parent: Optional[Wrapper] = parent

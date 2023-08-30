@@ -26,7 +26,7 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
         default: Optional[Union[Dataclass, Dict]] = None,
         parent: Optional["Wrapper"] = None,
         _field: Optional[dataclasses.Field] = None,
-        preferred_help: Union[str, docstring.HelpOrderEnum] = docstring.HelpOrderEnum.inline,
+        preferred_help: str = docstring.HelpOrder.inline,
     ):
         self.dataclass = dataclass
         self._name = name
@@ -149,7 +149,7 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
 def _wrap_field(
     parent: Optional[Wrapper],
     field: dataclasses.Field,
-    preferred_help: Union[str, docstring.HelpOrderEnum] = docstring.HelpOrderEnum.inline,
+    preferred_help: str = docstring.HelpOrder.inline,
 ) -> Optional[Wrapper]:
     if not field.init:
         return None
