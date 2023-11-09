@@ -26,18 +26,18 @@ def ContainerClass():
 
         @dataclass
         class ContainerClass(TestSetup):
-            a: Tuple[int]
+            a: Tuple[int, ...]
             b: List[int]
-            c: Tuple[str] = tuple()
+            c: Tuple[str, ...] = tuple()
             d: List[int] = field(default_factory=list)
 
     else:
 
         @dataclass
         class ContainerClass(TestSetup):
-            a: tuple[int]
+            a: tuple[int, ...]
             b: List[int]
-            c: Tuple[str] = tuple()
+            c: Tuple[str, ...] = tuple()
             d: list[int] = field(default_factory=list)
 
     return ContainerClass
