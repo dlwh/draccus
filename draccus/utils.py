@@ -332,7 +332,15 @@ def has_generic_arg(args):
 def is_choice_type(cls) -> bool:
     from draccus.choice_types import ChoiceType
 
-    return inspect.isclass(cls) and issubclass(cls, ChoiceType)
+    if inspect.isclass(cls):
+        try:
+            # builtins are technically "isclass" but they raise an exception with issubclass
+            # (because Python is stupid)
+            return issubclass(cls, ChoiceType)
+        except Exception:
+            pass
+
+    return False
 
 
 class StringHolderEnum(type):

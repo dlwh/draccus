@@ -1,3 +1,4 @@
+import sys
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Tuple, Type
 
@@ -21,12 +22,23 @@ def test_list_one_element(simple_attribute):
 
 @pytest.fixture
 def ContainerClass():
-    @dataclass
-    class ContainerClass(TestSetup):
-        a: Tuple[int]
-        b: List[int]
-        c: Tuple[str] = tuple()
-        d: List[int] = field(default_factory=list)
+    if sys.version_info < (3, 9):
+
+        @dataclass
+        class ContainerClass(TestSetup):
+            a: Tuple[int]
+            b: List[int]
+            c: Tuple[str] = tuple()
+            d: List[int] = field(default_factory=list)
+
+    else:
+
+        @dataclass
+        class ContainerClass(TestSetup):
+            a: tuple[int]
+            b: List[int]
+            c: Tuple[str] = tuple()
+            d: list[int] = field(default_factory=list)
 
     return ContainerClass
 
