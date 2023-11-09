@@ -1,5 +1,6 @@
 """ Functions for decoding dataclass fields from "raw" values (e.g. from json).
 """
+import traceback
 import typing
 from collections import OrderedDict
 from dataclasses import MISSING, Field, fields, is_dataclass
@@ -98,6 +99,8 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
         instance = cls(**init_args)  # type: ignore
     except TypeError as e:
         raise ParsingError(f"Couldn't instantiate class {cls} using the given arguments.") from e
+    except ValueError as e:
+        raise ParsingError(f"Couldn't instantiate class {cls} using the given arguments.") from e
 
     for name, value in non_init_args.items():
         logger.debug(f"Setting non-init field '{name}' on the instance.")
@@ -108,6 +111,13 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
 def decode_choice_class(cls: Type[T], raw_value: Any) -> T:
     """Decodes a value into an subtype of a choice class following the ChoiceType protocol."""
     assert issubclass(cls, ChoiceType)
+
+    try:
+        cls.get_choice_name(cls)
+        # we already know what type we're looking for, so we can just use that
+        return decode_dataclass(cls, raw_value)  # type: ignore
+    except ValueError:
+        pass
 
     if not isinstance(raw_value, dict):
         raise ParsingError(f"Expected a dict for a choice class, got {raw_value}")
@@ -230,9 +240,6 @@ def get_decoding_fn(cls: Type[T]) -> Callable[[Any], T]:
 
     raise Exception(f"No decoding function for type {cls}, consider using draccus.decode.register")
 
-    # Alternatively could have tried type as constructor, but could have a surprising behaviour
-    # return try_constructor(t)
-
 
 def decode_optional(t: Type[T]) -> Callable[[Optional[Any]], Optional[T]]:
     decode = get_decoding_fn(t)  # type: ignore
@@ -243,21 +250,26 @@ def decode_optional(t: Type[T]) -> Callable[[Optional[Any]], Optional[T]]:
     return _decode_optional
 
 
-def try_functions(*funcs: Callable[[Any], T]) -> Callable[[Any], Union[T, Any]]:
+def try_functions(funcs: Dict[Any, Callable[[Any], T]]) -> Callable[[Any], Union[T, Any]]:
     """Tries to use the functions in succession, else returns the same value unchanged."""
     if len(funcs) == 0:
         raise ValueError("Must provide at least one function to try")
     elif len(funcs) == 1:
-        return funcs[0]
+        return next(iter(funcs.values()))
 
     def _try_functions(val: Any) -> Union[T, Any]:
-        exceptions = []
-        for func in funcs:
+        exceptions = {}
+        for descriptor, func in funcs.items():
             try:
                 return func(val)
             except Exception as e:
-                exceptions.append(e)
-        raise TypeError(f"No valid parsing for value {val}: {exceptions}") from exceptions[0]
+                exceptions[descriptor] = e
+
+        message = "Failed to decode value using any of the following functions:\n"
+        for descriptor, ex in exceptions.items():
+            message += f"\t{descriptor}: {traceback.format_exception(type(ex), ex, ex.__traceback__)}"
+
+        raise Exception(message) from exceptions[next(iter(exceptions))]
 
     return _try_functions
 
@@ -270,9 +282,9 @@ def decode_union(*types: Type[T]) -> Callable[[Any], Union[T, Any]]:
     while type(None) in types:
         types.remove(type(None))
 
-    decoding_fns: List[Callable[[Any], T]] = [decode_optional(t) if optional else get_decoding_fn(t) for t in types]
+    decoding_fns = {t: (decode_optional(t) if optional else get_decoding_fn(t)) for t in types}
     # Try using each of the non-None types, in succession. Worst case, return the value.
-    return try_functions(*decoding_fns)
+    return try_functions(decoding_fns)
 
 
 def decode_list(t: Type[T]) -> Callable[[List[Any]], List[T]]:
@@ -292,7 +304,6 @@ def decode_tuple(*tuple_item_types: Type[T]) -> Callable[[List[T]], Tuple[T, ...
     # Get the decoding function for each item type
     has_ellipsis = False
     if Ellipsis in tuple_item_types:
-        # TODO: This isn't necessary, the ellipsis will always be at index 1.
         ellipsis_index = tuple_item_types.index(Ellipsis)
         decoding_fn_index = ellipsis_index - 1
         decoding_fn = get_decoding_fn(tuple_item_types[decoding_fn_index])  # type: ignore
@@ -360,11 +371,6 @@ def decode_dict(K_: Type[K], V_: Type[V]) -> Callable[[List[Tuple[Any, Any]]], D
 def no_op(v: T) -> T:
     """Decoding function that gives back the value as-is."""
     return v
-
-
-def try_constructor(t: Type[T]) -> Callable[[Any], Union[T, Any]]:
-    """Tries to use the type as a constructor. If that fails, returns the value as-is."""
-    return try_functions(lambda val: t(**val), lambda val: t(val))  # type: ignore
 
 
 decode.register(Path, Path)

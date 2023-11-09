@@ -40,6 +40,13 @@ def test_choice_registry_decode():
         draccus.decode(Person, {"type": "adult", "name": 3})
 
 
+def test_registry_decode_subtype_without_type():
+    draccus.decode(Child, {"name": "bob", "favorite_toy": "truck"})
+
+    with pytest.raises(ParsingError):
+        draccus.decode(Child, {"type": "adult", "name": "bob", "age": 10})
+
+
 def test_choice_registry_encode():
     assert draccus.encode(Adult("bob", 10)) == {"type": "adult", "name": "bob", "age": 10}
     assert draccus.encode(Child("bob", "truck")) == {"type": "child", "name": "bob", "favorite_toy": "truck"}
