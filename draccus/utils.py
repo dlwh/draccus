@@ -378,6 +378,7 @@ def canonicalize_union(t: Type):
         args = tuple(canonicalize_union(arg) for arg in args)
         origin = tpi.get_origin(t)
         if origin is not None:
+            origin = raw_to_typing.get(origin, origin)
             return origin[args]
         else:
             return Union[args]
@@ -386,6 +387,13 @@ def canonicalize_union(t: Type):
 
 
 CONFIG_ARG = "config_path"
+
+raw_to_typing = {
+    dict: Dict,
+    list: List,
+    tuple: Tuple,
+    set: Set,
+}
 
 
 if __name__ == "__main__":

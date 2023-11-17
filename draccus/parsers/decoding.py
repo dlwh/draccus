@@ -79,8 +79,6 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
             field_value = decode_field(field, raw_value)
         except ParsingError as e:
             raise e
-        except TypeError as e:
-            raise e
         except Exception as e:
             raise ParsingError(
                 f"Failed when parsing value='{raw_value}' into field \"{cls}.{name}\" of type"
