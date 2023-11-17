@@ -20,7 +20,7 @@ def test_union_type():
     assert foo.x == "bob"
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires python3.9 or higher")
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
 def test_union_types_39():
     @dataclass
     class Foo(TestSetup):
@@ -33,7 +33,7 @@ def test_union_types_39():
     assert foo.x == "bob"
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires python3.9 or higher")
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
 def test_union_types_39_optional():
     @dataclass
     class Foo(TestSetup):
@@ -49,7 +49,7 @@ def test_union_types_39_optional():
     assert foo.x is None
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires python3.9 or higher")
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
 def test_union_types_39_optional_nested():
     @dataclass
     class Foo(TestSetup):

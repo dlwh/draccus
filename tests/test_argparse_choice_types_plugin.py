@@ -43,7 +43,7 @@ def test_plugin_registry_argparse():
 # the help text is a bit different in 3.8
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires python3.9 or higher")
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.9 or higher")
 def test_choice_registry_examine_help():
     @dataclasses.dataclass
     class Something(TestSetup):
