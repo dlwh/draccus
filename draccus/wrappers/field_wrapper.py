@@ -1,8 +1,6 @@
 import argparse
 import dataclasses
 import inspect
-import sys
-import types
 from argparse import _ActionsContainer
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
@@ -118,10 +116,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
 
         tpe = self.type
 
-        if sys.version_info >= (3, 9):
-            # these unions don't work well in argparse
-            if isinstance(tpe, types.UnionType):
-                tpe = Union[tpe.__args__]
+        tpe = utils.canonicalize_union(tpe)
 
         _arg_options["type"] = tpe
         try:

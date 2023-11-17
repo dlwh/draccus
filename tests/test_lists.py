@@ -22,7 +22,7 @@ def test_list_one_element(simple_attribute):
 
 @pytest.fixture
 def ContainerClass():
-    if sys.version_info < (3, 9):
+    if sys.version_info < (3, 10):
 
         @dataclass
         class ContainerClass(TestSetup):
