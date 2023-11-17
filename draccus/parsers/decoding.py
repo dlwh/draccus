@@ -13,6 +13,7 @@ from draccus.choice_types import CHOICE_TYPE_KEY, ChoiceType
 from draccus.parsers.registry_utils import RegistryFunc, withregistry
 from draccus.utils import (
     ParsingError,
+    canonicalize_union,
     format_error,
     get_type_arguments,
     has_generic_arg,
@@ -35,6 +36,7 @@ Dataclass = TypeVar("Dataclass")
 
 @withregistry
 def decode(cls: Type[T], raw_value: Any) -> T:
+    cls = canonicalize_union(cls)
     return get_decoding_fn(cls)(raw_value)  # type: ignore
 
 
@@ -76,6 +78,8 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
         try:
             field_value = decode_field(field, raw_value)
         except ParsingError as e:
+            raise e
+        except TypeError as e:
             raise e
         except Exception as e:
             raise ParsingError(

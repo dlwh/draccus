@@ -5,6 +5,8 @@ import dataclasses
 import enum
 import inspect
 import logging
+import sys
+import types
 from dataclasses import _MISSING_TYPE
 from enum import Enum
 from logging import getLogger
@@ -158,7 +160,13 @@ def is_tuple_or_list(t: Type) -> bool:
 
 
 def is_union(t: Type) -> bool:
-    return getattr(t, "__origin__", "") == Union
+    if getattr(t, "__origin__", "") == Union:
+        return True
+
+    elif sys.version_info >= (3, 9):
+        return tpi.is_union_type(t)
+
+    return False
 
 
 def is_homogeneous_tuple_type(t: Type[Tuple]) -> bool:
@@ -360,7 +368,25 @@ class StringHolderEnum(type):
         yield from cls.members
 
 
+def canonicalize_union(t: Type):
+    if sys.version_info >= (3, 9):
+        if isinstance(t, types.UnionType):
+            return Union[t.__args__]
+    # recursively canonicalize
+    args = get_args(t)
+    if args:
+        args = tuple(canonicalize_union(arg) for arg in args)
+        origin = tpi.get_origin(t)
+        if origin is not None:
+            return origin[args]
+        else:
+            return Union[args]
+
+    return t
+
+
 CONFIG_ARG = "config_path"
+
 
 if __name__ == "__main__":
     import doctest
