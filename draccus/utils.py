@@ -163,7 +163,7 @@ def is_union(t: Type) -> bool:
     if getattr(t, "__origin__", "") == Union:
         return True
 
-    elif sys.version_info >= (3, 9):
+    elif sys.version_info >= (3, 10):
         return tpi.is_union_type(t)
 
     return False
@@ -369,7 +369,7 @@ class StringHolderEnum(type):
 
 
 def canonicalize_union(t: Type):
-    if sys.version_info >= (3, 9):
+    if sys.version_info >= (3, 10):
         if isinstance(t, types.UnionType):
             return Union[t.__args__]
     # recursively canonicalize
