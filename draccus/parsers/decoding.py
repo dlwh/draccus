@@ -125,9 +125,13 @@ def decode_choice_class(cls: Type[T], raw_value: Any) -> T:
         raise ParsingError(f"Expected a dict for a choice class, got {raw_value}")
 
     if CHOICE_TYPE_KEY not in raw_value:
-        raise ParsingError(f"Expected a dict with a '{CHOICE_TYPE_KEY}' key for {cls}, got {raw_value}")
+        default = cls.default_choice_name()
+        if default is None:
+            raise ParsingError(f"Expected a dict with a '{CHOICE_TYPE_KEY}' key for {cls}, got {raw_value}")
 
-    choice_type = raw_value[CHOICE_TYPE_KEY]
+        choice_type = default
+    else:
+        choice_type = raw_value[CHOICE_TYPE_KEY]
 
     try:
         subcls = cls.get_choice_class(choice_type)
@@ -135,7 +139,8 @@ def decode_choice_class(cls: Type[T], raw_value: Any) -> T:
         raise ParsingError(f"Couldn't find a choice class for '{choice_type}' in {cls}") from e
 
     raw_value = raw_value.copy()
-    raw_value.pop(CHOICE_TYPE_KEY)
+    if CHOICE_TYPE_KEY in raw_value:
+        raw_value.pop(CHOICE_TYPE_KEY)
 
     # return decode(subcls, raw_value)
     return decode_dataclass(subcls, raw_value)

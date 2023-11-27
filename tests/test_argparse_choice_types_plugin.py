@@ -20,9 +20,8 @@ def test_plugin_registry_argparse():
     s = Something.setup("--model.type mlp --model.layers 12 --model.hidden_size 6")
     assert s.model == MlpConfig(12, 6)
 
-    # TODO: default type
-    # s = Something.setup("--model.layers 12 --model.hidden_size 6")
-    # assert s.model == MlpConfig(12, 6)
+    s = Something.setup("--model.layers 12 --model.hidden_size 6")
+    assert s.model == MlpConfig(12, 6)
 
     s = Something.setup("--model.type gpt --model.layers 12 --model.attn_pdrop 0.2")
     from .draccus_choice_plugins.gpt import GptConfig

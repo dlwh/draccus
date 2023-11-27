@@ -61,6 +61,13 @@ class ChoiceType(Protocol):
         """
         ...
 
+    @classmethod
+    def default_choice_name(cls) -> Optional[str]:
+        """
+        Returns the name of the default subclass of this choice type.
+        """
+        ...
+
 
 class ChoiceRegistryBase(ChoiceType):
     _choice_registry: ClassVar[Dict[str, Any]]
@@ -79,6 +86,10 @@ class ChoiceRegistryBase(ChoiceType):
             if choice_type == subcls:
                 return name
         raise ValueError(f"Cannot find choice name for {subcls}")
+
+    @classmethod
+    def default_choice_name(cls) -> Optional[str]:
+        return None
 
     @overload
     @classmethod
