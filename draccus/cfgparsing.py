@@ -29,7 +29,7 @@ def load(t: Type[Dataclass], stream):
 
 def dump(config: Dataclass, stream=None, omit_defaults: bool = False, **kwargs):
     """
-    Dump the config file to yaml.
+    Dump the config object to yaml.
     optionally omit any value that still has a default value
     """
     config_dict = encode(config)
