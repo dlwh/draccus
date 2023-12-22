@@ -257,14 +257,18 @@ def decode_optional(t: Type[T]) -> Callable[[Optional[Any]], Optional[T]]:
     return _decode_optional
 
 
-def try_functions(funcs: Dict[Any, Callable[[Any], T]]) -> Callable[[Any], Union[T, Any]]:
+def try_functions(funcs: Dict[Any, Callable[[Any], T]], is_optional: bool) -> Callable[[Any], Any]:
     """Tries to use the functions in succession, else returns the same value unchanged."""
+
     if len(funcs) == 0:
         raise ValueError("Must provide at least one function to try")
-    elif len(funcs) == 1:
+    elif len(funcs) == 1 and not is_optional:
         return next(iter(funcs.values()))
 
     def _try_functions(val: Any) -> Union[T, Any]:
+        if is_optional and val is None:
+            return None
+
         exceptions = {}
         for descriptor, func in funcs.items():
             try:
@@ -289,9 +293,10 @@ def decode_union(*types: Type[T]) -> Callable[[Any], Union[T, Any]]:
     while type(None) in types:
         types.remove(type(None))
 
-    decoding_fns = {t: (decode_optional(t) if optional else get_decoding_fn(t)) for t in types}
-    # Try using each of the non-None types, in succession. Worst case, return the value.
-    return try_functions(decoding_fns)
+    decoding_fns = {t: get_decoding_fn(t) for t in types}
+    # Try using each of the non-None types, in succession
+    fn = try_functions(decoding_fns, is_optional=optional)
+    return fn
 
 
 def decode_list(t: Type[T]) -> Callable[[List[Any]], List[T]]:
