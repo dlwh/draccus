@@ -5,6 +5,7 @@ import pytest
 import draccus
 from draccus import ParsingError
 from draccus.choice_types import ChoiceRegistry
+from draccus.utils import DecodingError
 
 
 @dataclasses.dataclass
@@ -33,17 +34,17 @@ def test_choice_registry_decode():
     with pytest.raises(ParsingError):
         draccus.decode(Person, {"type": "baby", "name": "bob"})
 
-    with pytest.raises(ParsingError):
+    with pytest.raises(DecodingError):
         draccus.decode(Person, {"type": "adult", "name": "bob", "age": 10, "favorite_toy": "truck"})
 
-    with pytest.raises(ParsingError):
+    with pytest.raises(DecodingError):
         draccus.decode(Person, {"type": "adult", "name": 3})
 
 
 def test_registry_decode_subtype_without_type():
     draccus.decode(Child, {"name": "bob", "favorite_toy": "truck"})
 
-    with pytest.raises(ParsingError):
+    with pytest.raises(DecodingError):
         draccus.decode(Child, {"type": "adult", "name": "bob", "age": 10})
 
 

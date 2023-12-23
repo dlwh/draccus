@@ -122,7 +122,7 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any], path: Sequence[str
     # see if there are missing required fields
     missing_fields = []
     for field in fields(cls):  # type: ignore
-        if field.init and field.name not in init_args:
+        if field.init and field.name not in init_args and field.default is MISSING and field.default_factory is MISSING:
             missing_fields.append(field.name)
 
     if missing_fields:
@@ -169,7 +169,7 @@ def decode_choice_class(cls: Type[T], raw_value: Any, path: Sequence[str]) -> T:
     try:
         subcls = cls.get_choice_class(choice_type)
     except KeyError as e:
-        raise ParsingError(f"Couldn't find a choice class for '{choice_type}' in {cls}") from e
+        raise DecodingError(path, f"Couldn't find a choice class for '{choice_type}' in {cls}") from e
 
     raw_value = raw_value.copy()
     if CHOICE_TYPE_KEY in raw_value:

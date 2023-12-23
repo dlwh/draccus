@@ -4,6 +4,7 @@ from typing import Any, Type
 
 import draccus
 from draccus import ParsingError
+from draccus.utils import DecodingError
 
 from .testutils import TestSetup, parametrize, raises
 
@@ -27,7 +28,7 @@ def test_not_passing_required_argument_raises_error(simple_attribute):
     class SomeDataclass(TestSetup):
         some_attribute: some_type  # type: ignore
 
-    with raises(ParsingError):
+    with raises(DecodingError):
         _ = SomeDataclass.setup("")
 
 

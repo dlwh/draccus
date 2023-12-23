@@ -122,7 +122,7 @@ def test_union_error_message_dataclasses():
         Foo.setup("--x.y foo")
 
     assert """`x`: Could not decode the value into any of the given types:
-    Baz: Missing required field 'z' for Baz
+    Baz: Missing required field(s) `z` for Baz
     Bar: The fields `y` are not valid for Bar""".strip() in str(
         e.value
     )

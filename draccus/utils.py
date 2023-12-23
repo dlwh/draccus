@@ -72,7 +72,7 @@ class ParsingError(DraccusException):
     pass
 
 
-class DecodingError(DraccusException):
+class DecodingError(ParsingError):
     key_path: Sequence[str]
     message: str
 
