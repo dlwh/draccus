@@ -4,7 +4,7 @@
 # Pyrallis - Simple Configuration with Dataclasses
 
 > Pyrausta (also called pyrallis (πυραλλίς), pyragones) is a mythological insect-sized dragon from Cyprus.
- 
+
 `Pyrallis` is a simple library, derived from `simple-parsing`, for automagically creating project configuration from a dataclass.
 
 ![](argparse2pyrallis.gif)
@@ -26,8 +26,8 @@ There are several key features to pyrallis but at its core pyrallis simply allow
     ``` python title="train_model.py"  linenums="1"
     from dataclasses import dataclass
     import pyrallis
-    
-    
+
+
     @dataclass
     class TrainConfig:
         """ Training config for Machine Learning """
@@ -72,12 +72,12 @@ workers: 42
 ```
 
 ### Key Features
-Building on that design pyrallis offers some really enjoyable features including 
+Building on that design pyrallis offers some really enjoyable features including
 
 * Builtin IDE support for autocompletion and linting thanks to the structured config. 🤓
 * Joint reading from command-line and a config file, with support for specifying default config_path for the `pyrallis.parse` call 😍
 ```python
-cfg = pyrallis.parse(config_class=TrainConfig, 
+cfg = pyrallis.parse(config_class=TrainConfig,
                      config_path='/configs/default_config.yaml')
 ```
 * Support for builtin dataclass features, such as `__post_init__` and `@property` 😁
@@ -104,4 +104,3 @@ cfg = pyrallis.parse(config_class=TrainConfig,
 * Support for multiple configuration formats (`yaml`, `json`,`toml`) using `pyrallis.set_config_type` ⚙️
 
 That's basically it, see the rest of this documentation for more complete tutorial and info.
-
