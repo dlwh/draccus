@@ -64,12 +64,28 @@ Dataclass = TypeVar("Dataclass", bound=DataclassInstance)
 DataclassType = Type[Dataclass]
 
 
-class PyrallisException(Exception):
+class DraccusException(Exception):
     pass
 
 
-class ParsingError(PyrallisException):
+class ParsingError(DraccusException):
     pass
+
+
+class DecodingError(DraccusException):
+    key_path: Sequence[str]
+
+    def __init__(self, key_path: Sequence[str], message: str):
+        self.key_path = key_path
+        super().__init__(message)
+
+    def __str__(self):
+        if len(self.key_path) == 0:
+            return super().__str__()
+
+        key_path = ".".join(self.key_path)
+
+        return f"{key_path}: {super().__str__()}"
 
 
 def get_item_type(container_type: Type[Container[T]]) -> Type[T]:

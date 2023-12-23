@@ -60,3 +60,12 @@ def test_union_types_39_optional_nested():
 
     foo = Foo.setup("--x bob")
     assert foo.x == "bob"
+
+
+def test_union_error_message():
+    @dataclass
+    class Foo(TestSetup):
+        x: Union[float, bool] = 0
+
+    with pytest.raises(ParsingError):
+        Foo.setup("--x 1.2.3")

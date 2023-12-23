@@ -20,7 +20,7 @@ import mergedeep
 from draccus import cfgparsing, utils
 from draccus.help_formatter import SimpleHelpFormatter
 from draccus.parsers import decoding
-from draccus.utils import Dataclass, PyrallisException
+from draccus.utils import Dataclass, DraccusException
 from draccus.wrappers import DataclassWrapper
 from draccus.wrappers.docstring import HelpOrder
 from draccus.wrappers.suppressing_argparse import SuppressingArgumentParser
@@ -89,14 +89,14 @@ class ArgumentParser(Generic[T]):
     def _assert_preferred_help(self):
         """Checks that `self.prefer_help` is valid."""
         if self.preferred_help not in {"inline", "above", "below"}:
-            raise PyrallisException(
+            raise DraccusException(
                 f"Value `prefer_help = {self.preferred_help}` not supported; must be one of < inline | above | below >"
             )
 
     def _assert_no_conflicts(self):
         """Checks for a field name that conflicts with utils.CONFIG_ARG"""
         if utils.CONFIG_ARG in [field.name for field in dataclasses.fields(self.config_class)]:
-            raise PyrallisException(f"{utils.CONFIG_ARG} is a reserved word for draccus")
+            raise DraccusException(f"{utils.CONFIG_ARG} is a reserved word for draccus")
 
     def parse_args(self, args=None, namespace=None) -> T:
         args, argv = self.parse_known_args(args, namespace)

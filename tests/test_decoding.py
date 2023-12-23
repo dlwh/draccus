@@ -4,14 +4,14 @@ from enum import Enum, auto
 
 import yaml
 
-from draccus.utils import PyrallisException
+from draccus.utils import DraccusException
 
 from .testutils import *
 
 
 class Color(Enum):
-    blue: str = auto()
-    red: str = auto()
+    blue = auto()
+    red = auto()
 
 
 def test_encode_something(simple_attribute):
@@ -122,7 +122,7 @@ def test_reserved_config_word():
     class MainClass:
         config_path: str = ""
 
-    with raises(PyrallisException):
+    with raises(DraccusException):
         draccus.parse(MainClass)
 
 

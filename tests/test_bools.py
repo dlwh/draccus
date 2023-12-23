@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import pytest
 
 from draccus import ParsingError
+from draccus.utils import DecodingError
 
 from .testutils import TestSetup
 
@@ -28,8 +29,10 @@ def test_bool_attributes_work():
 
 
 def test_bool_doesnt_parse_non_bools():
-    with pytest.raises(ParsingError):
+    with pytest.raises(DecodingError) as e:
         Base.setup("--a 5 --f 5")
 
-    with pytest.raises(ParsingError):
+    assert e.value.key_path == ("f",)
+
+    with pytest.raises(DecodingError):
         Base.setup("--a 5 --f foo")

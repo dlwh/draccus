@@ -3,15 +3,16 @@
 import traceback
 import typing
 from collections import OrderedDict
-from dataclasses import MISSING, Field, fields, is_dataclass
+from dataclasses import MISSING, fields, is_dataclass
 from functools import lru_cache, partial
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, TypeVar, Union
+from typing import Any, Dict, Iterable, List, Optional, Protocol, Sequence, Set, Tuple, Type, TypeVar, Union
 
 from draccus.choice_types import CHOICE_TYPE_KEY, ChoiceType
 from draccus.parsers.registry_utils import RegistryFunc, withregistry
 from draccus.utils import (
+    DecodingError,
     ParsingError,
     canonicalize_union,
     format_error,
@@ -29,37 +30,53 @@ from draccus.utils import (
 logger = getLogger(__name__)
 
 T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
 K = TypeVar("K")
 V = TypeVar("V")
 Dataclass = TypeVar("Dataclass")
 
 
+class DecodingFunction(Protocol[T_co]):
+    def __call__(self, raw_value: Any, path: Sequence[str]) -> T_co:
+        ...
+
+
 @withregistry
 def decode(cls: Type[T], raw_value: Any) -> T:
     cls = canonicalize_union(cls)
-    return get_decoding_fn(cls)(raw_value)  # type: ignore
+    return get_decoding_fn(cls)(raw_value, ())  # type: ignore
 
 
-# Dictionary mapping from types/type annotations to their decoding functions.
+def decode_from_init(cls: Type[T], raw_value: Any, path: Sequence[str]) -> T:
+    """Decodes a value into an atomic type (e.g. str, int, float, etc.)."""
+    try:
+        return cls(raw_value)  # type: ignore
+    except Exception as e:
+        raise DecodingError(path, f"Couldn't parse '{raw_value}' into a {cls}") from e
+
+
 for t in [str, float, int, bytes]:
-    decode.register(t, t)
+    decode.register(t, partial(decode_from_init, t))
 
 
 @decode.register(bool)
-def decode_bool(raw_value: Any) -> bool:
+def decode_bool(raw_value: Any, path) -> bool:
     # only accept yaml 1.2 bools
     if raw_value is True or raw_value == "true":
         return True
     elif raw_value is False or raw_value == "false":
         return False
     else:
-        raise ValueError(f"Couldn't parse '{raw_value}' as a bool")
+        raise DecodingError(path, f"Couldn't parse '{raw_value}' into a bool")
 
 
-def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
+def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any], path: Sequence[str] = ()) -> Dataclass:
     """Parses an instance of the dataclass `cls` from the dict `d`."""
-    if d is None:
-        return None
+    # if d is None:
+    #     return None
+
+    path = tuple(path)
+
     obj_dict: Dict[str, Any] = d.copy()
 
     init_args: Dict[str, Any] = {}
@@ -76,8 +93,12 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
 
         raw_value = obj_dict.pop(name)
         try:
-            field_value = decode_field(field, raw_value)
+            field_type = field.type
+            logger.debug(f"Decode name = {name}, type = {field_type}")
+            field_value = get_decoding_fn(field_type)(raw_value, (*path, name))  # type: ignore
         except ParsingError as e:
+            raise e
+        except DecodingError as e:
             raise e
         except Exception as e:
             raise ParsingError(
@@ -110,7 +131,7 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any]) -> Dataclass:
     return instance
 
 
-def decode_choice_class(cls: Type[T], raw_value: Any) -> T:
+def decode_choice_class(cls: Type[T], raw_value: Any, path: Sequence[str]) -> T:
     """Decodes a value into an subtype of a choice class following the ChoiceType protocol."""
     assert issubclass(cls, ChoiceType)
 
@@ -143,15 +164,7 @@ def decode_choice_class(cls: Type[T], raw_value: Any) -> T:
         raw_value.pop(CHOICE_TYPE_KEY)
 
     # return decode(subcls, raw_value)
-    return decode_dataclass(subcls, raw_value)
-
-
-def decode_field(field: Field, raw_value: Any) -> Any:
-    """Converts a "raw" value (e.g. from json file) to the type of the `field`."""
-    name = field.name
-    field_type = field.type
-    logger.debug(f"Decode name = {name}, type = {field_type}")
-    return decode(field_type, raw_value)
+    return decode_dataclass(subcls, raw_value, path)
 
 
 def has_custom_decoder(cls: Type[T]):
@@ -166,7 +179,7 @@ def has_custom_decoder(cls: Type[T]):
 
 
 @lru_cache(maxsize=100)
-def get_decoding_fn(cls: Type[T]) -> Callable[[Any], T]:
+def get_decoding_fn(cls: Type[T]) -> DecodingFunction[T]:
     """Fetches/Creates a decoding function for the given type annotation.
 
     This decoding function can then be used to create an instance of the type
@@ -235,7 +248,7 @@ def get_decoding_fn(cls: Type[T]) -> Callable[[Any], T]:
         return decode_union(*args)
 
     elif is_enum(cls):
-        return lambda key: cls[key]
+        return partial(decode_enum, cls)
 
     import typing_inspect as tpi
 
@@ -248,70 +261,79 @@ def get_decoding_fn(cls: Type[T]) -> Callable[[Any], T]:
     raise Exception(f"No decoding function for type {cls}, consider using draccus.decode.register")
 
 
-def decode_optional(t: Type[T]) -> Callable[[Optional[Any]], Optional[T]]:
+def decode_enum(cls: Type[T], raw_value: Any, path) -> T:
+    """Decodes a value into an enum."""
+    if not is_enum(cls):
+        raise Exception(f"Expected an enum type, got {cls}")
+
+    try:
+        return cls[raw_value]  # type: ignore
+    except ValueError as e:
+        raise DecodingError(path, f"Couldn't parse '{raw_value}' into an enum of type {cls}") from e
+
+
+def decode_optional(t: Type[T]) -> DecodingFunction[Optional[T]]:
     decode = get_decoding_fn(t)  # type: ignore
 
-    def _decode_optional(val: Optional[Any]) -> Optional[T]:
-        return val if val is None else decode(val)
+    def _decode_optional(raw_value: Any, path: Sequence[str] = ()) -> Optional[T]:
+        return raw_value if raw_value is None else decode(raw_value, path)
 
     return _decode_optional
 
 
-def try_functions(funcs: Dict[Any, Callable[[Any], T]], is_optional: bool) -> Callable[[Any], Any]:
-    """Tries to use the functions in succession, else returns the same value unchanged."""
-
-    if len(funcs) == 0:
-        raise ValueError("Must provide at least one function to try")
-    elif len(funcs) == 1 and not is_optional:
-        return next(iter(funcs.values()))
-
-    def _try_functions(val: Any) -> Union[T, Any]:
-        if is_optional and val is None:
-            return None
-
-        exceptions = {}
-        for descriptor, func in funcs.items():
-            try:
-                return func(val)
-            except Exception as e:
-                exceptions[descriptor] = e
-
-        message = "Failed to decode value using any of the following functions:\n"
-        for descriptor, ex in exceptions.items():
-            message += f"\t{descriptor}: {traceback.format_exception(type(ex), ex, ex.__traceback__)}"
-
-        raise Exception(message) from exceptions[next(iter(exceptions))]
-
-    return _try_functions
-
-
 @typing.no_type_check
-def decode_union(*types: Type[T]) -> Callable[[Any], Union[T, Any]]:
+def decode_union(*types: Type[T]) -> DecodingFunction[T]:
     types = list(types)
-    optional = type(None) in types
+    is_optional = type(None) in types
     # Partition the Union into None and non-None types.
     while type(None) in types:
         types.remove(type(None))
 
     decoding_fns = {t: get_decoding_fn(t) for t in types}
     # Try using each of the non-None types, in succession
-    fn = try_functions(decoding_fns, is_optional=optional)
-    return fn
+
+    if len(decoding_fns) == 0:
+        raise ValueError("Must provide at least one function to try")
+    elif len(decoding_fns) == 1 and not is_optional:
+        return next(iter(decoding_fns.values()))
+
+    def _try_functions(val: Any, path: Sequence[str] = ()) -> T:
+        if is_optional and val is None:
+            return None
+
+        exceptions = {}
+        for descriptor, func in decoding_fns.items():
+            try:
+                return func(val, path)
+            except Exception as e:
+                exceptions[descriptor] = e
+
+        message = "Failed to decode value using any of the following functions:\n"
+        for descriptor, ex in exceptions.items():
+            if isinstance(ex, DecodingError):
+                ex = ex.__cause__
+
+            message += f"\t{descriptor}: {traceback.format_exception(type(ex), ex, ex.__traceback__)}"
+
+        raise DecodingError(path, message) from exceptions[next(iter(exceptions))]
+
+    return _try_functions
 
 
-def decode_list(t: Type[T]) -> Callable[[List[Any]], List[T]]:
+def decode_list(t: Type[T]) -> DecodingFunction[List[T]]:
     decode_item = get_decoding_fn(t)  # type: ignore
 
-    def _decode_list(val: List[Any]) -> List[T]:
+    def _decode_list(raw_value: List[Any], path: Sequence[str]) -> List[T]:
+        path = tuple(path)
         # assert type(val) == list
-        if not isinstance(val, list):
-            raise Exception(f"The given value='{val}' is not of a valid input")
-        return [decode_item(v) for v in val]
+        if not isinstance(raw_value, list):
+            raise Exception(f"The given value='{raw_value}' is not of a valid input for a list type")
+        return [decode_item(v, (*path, str(i))) for i, v in enumerate(raw_value)]
 
     return _decode_list
 
 
-def decode_tuple(*tuple_item_types: Type[T]) -> Callable[[List[T]], Tuple[T, ...]]:
+def decode_tuple(*tuple_item_types: Type[T]) -> DecodingFunction[Tuple[T, ...]]:
     """Makes a parsing function for creating tuples."""
     # Get the decoding function for each item type
     has_ellipsis = False
@@ -329,60 +351,62 @@ def decode_tuple(*tuple_item_types: Type[T]) -> Callable[[List[T]], Tuple[T, ...
     # Note, if there are more values than types in the tuple type, then the
     # last type is used.
 
-    def _decode_tuple(val: typing.Sequence[Any]) -> Tuple[T, ...]:
-        if val is None:
+    def _decode_tuple(raw_value: typing.Sequence[Any], path) -> Tuple[T, ...]:
+        path = tuple(path)
+        if raw_value is None:
             raise TypeError("Value must not be None for conversion to a tuple")
         if has_ellipsis:
-            return tuple(decoding_fn(v) for v in val)
+            return tuple(decoding_fn(v, (*path, str(i))) for i, v in enumerate(raw_value))
         else:
-            if len(decoding_fns) != len(val):
-                err_msg = f"Trying to decode {len(val)} values for a predfined {len(decoding_fns)}-Tuple"
+            if len(decoding_fns) != len(raw_value):
+                err_msg = f"Trying to decode {len(raw_value)} values for a predfined {len(decoding_fns)}-Tuple"
                 raise TypeError(err_msg)
-            return tuple(decoding_fns[i](v) for i, v in enumerate(val))
+            return tuple(decoding_fns[i](v, (*path, str(i))) for i, v in enumerate(raw_value))
 
     return _decode_tuple
 
 
-def decode_set(item_type: Type[T]) -> Callable[[List[T]], Set[T]]:
+def decode_set(item_type: Type[T]) -> DecodingFunction[Set[T]]:
     """Makes a parsing function for creating sets with items of type `item_type`."""
     # Get the parsers fn for a list of items of type `item_type`.
     parse_list_fn = decode_list(item_type)
 
-    def _decode_set(val: List[Any]) -> Set[T]:
-        return set(parse_list_fn(val))
+    def _decode_set(raw_value: List[Any], path) -> Set[T]:
+        return set(parse_list_fn(raw_value, path))
 
     return _decode_set
 
 
-def decode_dict(K_: Type[K], V_: Type[V]) -> Callable[[List[Tuple[Any, Any]]], Dict[K, V]]:
+def decode_dict(K_: Type[K], V_: Type[V]) -> DecodingFunction[Dict[K, V]]:
     """Creates a decoding function for a dict type. Works with OrderedDict too."""
     decode_k = get_decoding_fn(K_)  # type: ignore
-    decode_v: Callable[[Any], V] = get_decoding_fn(V_)  # type: ignore
+    decode_v: DecodingFunction[V] = get_decoding_fn(V_)  # type: ignore
 
-    def _decode_dict(val: Union[Dict[Any, Any], List[Tuple[Any, Any]]]) -> Dict[K, V]:
+    def _decode_dict(raw_value: Union[Dict[Any, Any], List[Tuple[Any, Any]]], path) -> Dict[K, V]:
         result: Dict[K, V] = {}
         items: Iterable[Tuple[Any, Any]]
-        if isinstance(val, list):
+        if isinstance(raw_value, list):
             result = OrderedDict()
-            items = val
-        elif isinstance(val, OrderedDict):
+            items = raw_value
+        elif isinstance(raw_value, OrderedDict):
             # NOTE(ycho): Needed to propagate `OrderedDict` type
             result = OrderedDict()
-            items = val.items()
+            items = raw_value.items()
         else:
-            items = val.items()
+            items = raw_value.items()
         for k, v in items:
-            k_ = decode_k(k)
-            v_ = decode_v(v)
+            k_ = decode_k(k, (*tuple(path), f"key={k}"))
+            v_ = decode_v(v, (*tuple(path), k))
             result[k_] = v_
         return result
 
     return _decode_dict
 
 
-def no_op(v: T) -> T:
+def no_op(raw_value: T, path) -> T:
     """Decoding function that gives back the value as-is."""
-    return v
+    del path
+    return raw_value
 
 
-decode.register(Path, Path)
+decode.register(Path, partial(decode_from_init, Path))
