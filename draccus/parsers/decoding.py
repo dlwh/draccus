@@ -116,15 +116,26 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any], path: Sequence[str
 
     # If there are arguments left over in the dict after taking all fields.
     if extra_args:
-        raise ParsingError(f"The fields {extra_args} do not belong to the class")
+        formatted_keys = ", ".join(f"`{k}`" for k in extra_args.keys())
+        raise DecodingError(path, f"The fields {formatted_keys} are not valid for {stringify_type(cls)}")
+
+    # see if there are missing required fields
+    missing_fields = []
+    for field in fields(cls):  # type: ignore
+        if field.init and field.name not in init_args:
+            missing_fields.append(field.name)
+
+    if missing_fields:
+        formatted_keys = ", ".join(f"`{k}`" for k in missing_fields)
+        raise DecodingError(path, f"Missing required field(s) {formatted_keys} for {stringify_type(cls)}")
 
     init_args.update(extra_args)
     try:
         instance = cls(**init_args)  # type: ignore
     except TypeError as e:
-        raise ParsingError(f"Couldn't instantiate class {cls} using the given arguments.") from e
+        raise ParsingError(f"Couldn't instantiate class {stringify_type(cls)} using the given arguments.") from e
     except ValueError as e:
-        raise ParsingError(f"Couldn't instantiate class {cls} using the given arguments.") from e
+        raise ParsingError(f"Couldn't instantiate class {stringify_type(cls)} using the given arguments.") from e
 
     for name, value in non_init_args.items():
         logger.debug(f"Setting non-init field '{name}' on the instance.")
@@ -311,18 +322,19 @@ def decode_union(*types: Type[T]) -> DecodingFunction[T]:
 
         message = "Could not decode the value into any of the given types:\n"
         for descriptor, ex in exceptions.items():
+            if isinstance(ex, DecodingError):
+                ex = ex.strip_prefix(path)
             descriptor = stringify_type(descriptor)
-            submessage = getattr(ex, "message", str(ex)).split("\n")
+            submessage = str(ex).split("\n")
             # indent the submessage by (4 + len(descriptor) + 1) spaces
             first_line = True
             for line in submessage:
                 if first_line:
                     first_line = False
-                    message += f"    {descriptor}: {line}"
+                    message += f"    {descriptor}: {line.strip()}"
                     message += "\n"
                 else:
                     message += f"{' ' * (5 + len(str(descriptor)))}{line}\n"
-            # message += f"    {descriptor}: {message}\n"
 
         raise DecodingError(path, message) from exceptions[next(iter(exceptions))]
 

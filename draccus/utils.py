@@ -76,6 +76,13 @@ class DecodingError(DraccusException):
     key_path: Sequence[str]
     message: str
 
+    def strip_prefix(self, prefix: Sequence[str]) -> "DecodingError":
+        if len(self.key_path) < len(prefix):
+            return self
+        if not all(self.key_path[i] == prefix[i] for i in range(len(prefix))):
+            raise ValueError(f"Prefix {prefix} is not a prefix of {self.key_path}")
+        return DecodingError(self.key_path[len(prefix) :], self.message)
+
     def __init__(self, key_path: Sequence[str], message: str):
         self.key_path = key_path
         self.message = message
@@ -83,7 +90,7 @@ class DecodingError(DraccusException):
 
     def __str__(self):
         if len(self.key_path) == 0:
-            return super().__str__()
+            return self.message
 
         key_path = ".".join(self.key_path)
 
@@ -431,7 +438,11 @@ def stringify_type(tpe: Type):
 
     # TODO: more types
     else:
-        return str(tpe)
+        # strip any package names/get plain name
+        try:
+            return tpe.__name__
+        except Exception:
+            return str(tpe)
 
 
 if __name__ == "__main__":

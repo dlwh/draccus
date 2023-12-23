@@ -77,3 +77,52 @@ def test_union_error_message_atomics():
     bool: Couldn't parse '1.2.3' into a bool""" in str(
         e.value
     )
+
+
+def test_union_error_message_nested():
+    @dataclass
+    class Foo(TestSetup):
+        x: Union[float, Union[int, bool]] = 0
+
+    with pytest.raises(DecodingError) as e:
+        Foo.setup("--x 1.2.3")
+
+    assert """`x`: Could not decode the value into any of the given types:
+    float: Couldn't parse '1.2.3' into a float
+    int: Couldn't parse '1.2.3' into a int
+    bool: Couldn't parse '1.2.3' into a bool""" in str(
+        e.value
+    )
+
+
+def test_union_error_message_dataclasses():
+    @dataclass
+    class Baz:
+        z: int
+        y: str
+
+    @dataclass
+    class Bar:
+        z: bool
+
+    @dataclass
+    class Foo(TestSetup):
+        x: Union[Baz, Bar] = 0
+
+    with pytest.raises(DecodingError) as e:
+        Foo.setup("--x.z 1.2.3")
+
+    assert """`x`: Could not decode the value into any of the given types:
+    Baz: `z`: Couldn't parse '1.2.3' into a int
+    Bar: `z`: Couldn't parse '1.2.3' into a bool""".strip() in str(
+        e.value
+    )
+
+    with pytest.raises(DecodingError) as e:
+        Foo.setup("--x.y foo")
+
+    assert """`x`: Could not decode the value into any of the given types:
+    Baz: Missing required field 'z' for Baz
+    Bar: The fields `y` are not valid for Bar""".strip() in str(
+        e.value
+    )
