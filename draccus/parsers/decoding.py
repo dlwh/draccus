@@ -1,6 +1,5 @@
 """ Functions for decoding dataclass fields from "raw" values (e.g. from json).
 """
-import traceback
 import typing
 from collections import OrderedDict
 from dataclasses import MISSING, fields, is_dataclass
@@ -25,6 +24,7 @@ from draccus.utils import (
     is_set,
     is_tuple,
     is_union,
+    stringify_type,
 )
 
 logger = getLogger(__name__)
@@ -52,7 +52,7 @@ def decode_from_init(cls: Type[T], raw_value: Any, path: Sequence[str]) -> T:
     try:
         return cls(raw_value)  # type: ignore
     except Exception as e:
-        raise DecodingError(path, f"Couldn't parse '{raw_value}' into a {cls}") from e
+        raise DecodingError(path, f"Couldn't parse '{raw_value}' into a {stringify_type(cls)}") from e
 
 
 for t in [str, float, int, bytes]:
@@ -101,9 +101,10 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any], path: Sequence[str
         except DecodingError as e:
             raise e
         except Exception as e:
-            raise ParsingError(
+            raise DecodingError(
+                (*path, name),
                 f"Failed when parsing value='{raw_value}' into field \"{cls}.{name}\" of type"
-                f' {field.type}.\n\tUnderlying error is "{format_error(e)}"'
+                f' {field.type}.\n\tUnderlying error is "{format_error(e)}"',
             ) from e
 
         if field.init:
@@ -308,12 +309,20 @@ def decode_union(*types: Type[T]) -> DecodingFunction[T]:
             except Exception as e:
                 exceptions[descriptor] = e
 
-        message = "Failed to decode value using any of the following functions:\n"
+        message = "Could not decode the value into any of the given types:\n"
         for descriptor, ex in exceptions.items():
-            if isinstance(ex, DecodingError):
-                ex = ex.__cause__
-
-            message += f"\t{descriptor}: {traceback.format_exception(type(ex), ex, ex.__traceback__)}"
+            descriptor = stringify_type(descriptor)
+            submessage = getattr(ex, "message", str(ex)).split("\n")
+            # indent the submessage by (4 + len(descriptor) + 1) spaces
+            first_line = True
+            for line in submessage:
+                if first_line:
+                    first_line = False
+                    message += f"    {descriptor}: {line}"
+                    message += "\n"
+                else:
+                    message += f"{' ' * (5 + len(str(descriptor)))}{line}\n"
+            # message += f"    {descriptor}: {message}\n"
 
         raise DecodingError(path, message) from exceptions[next(iter(exceptions))]
 
@@ -354,13 +363,14 @@ def decode_tuple(*tuple_item_types: Type[T]) -> DecodingFunction[Tuple[T, ...]]:
     def _decode_tuple(raw_value: typing.Sequence[Any], path) -> Tuple[T, ...]:
         path = tuple(path)
         if raw_value is None:
-            raise TypeError("Value must not be None for conversion to a tuple")
+            raise DecodingError("Value must not be None for conversion to a tuple", path)
         if has_ellipsis:
             return tuple(decoding_fn(v, (*path, str(i))) for i, v in enumerate(raw_value))
         else:
             if len(decoding_fns) != len(raw_value):
-                err_msg = f"Trying to decode {len(raw_value)} values for a predfined {len(decoding_fns)}-Tuple"
-                raise TypeError(err_msg)
+                # err_msg = f"Trying to decode {len(raw_value)} values for a predfined {len(decoding_fns)}-Tuple"
+                err_msg = f"Expected {len(decoding_fns)} items, got {len(raw_value)}"
+                raise DecodingError(path, err_msg)
             return tuple(decoding_fns[i](v, (*path, str(i))) for i, v in enumerate(raw_value))
 
     return _decode_tuple

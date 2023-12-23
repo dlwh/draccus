@@ -4,6 +4,7 @@ from typing import Tuple
 import pytest
 
 from draccus import ParsingError
+from draccus.utils import DecodingError
 from tests.testutils import TestSetup
 
 
@@ -16,8 +17,11 @@ def test_tuple_with_n_items_takes_only_n_values():
     assert c.ints == (1, 5)
     c = Container.setup("--ints [4,8]")
     assert c.ints == (4, 8)
-    with pytest.raises(ParsingError):
+    with pytest.raises(DecodingError) as e:
         c = Container.setup("--ints [4,5,6,7,8]")
+
+    assert "Expected 2 items, got 5" in str(e.value)
+    assert e.value.key_path == ("ints",)
 
 
 def test_tuple_elipsis_takes_any_number_of_args():

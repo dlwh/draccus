@@ -74,10 +74,12 @@ class ParsingError(DraccusException):
 
 class DecodingError(DraccusException):
     key_path: Sequence[str]
+    message: str
 
     def __init__(self, key_path: Sequence[str], message: str):
         self.key_path = key_path
-        super().__init__(message)
+        self.message = message
+        super().__init__(key_path, message)
 
     def __str__(self):
         if len(self.key_path) == 0:
@@ -85,7 +87,7 @@ class DecodingError(DraccusException):
 
         key_path = ".".join(self.key_path)
 
-        return f"{key_path}: {super().__str__()}"
+        return f"`{key_path}`: {self.message}"
 
 
 def get_item_type(container_type: Type[Container[T]]) -> Type[T]:
@@ -410,6 +412,26 @@ raw_to_typing = {
     tuple: Tuple,
     set: Set,
 }
+
+
+def stringify_type(tpe: Type):
+    origin = tpi.get_origin(tpe)
+    if tpe is float:
+        return "float"
+    elif tpe is int:
+        return "int"
+    elif tpe is bool:
+        return "bool"
+    elif tpe is str:
+        return "str"
+    elif tpe is list:
+        return "list"
+    elif origin is list or origin is List:
+        return f"list[{stringify_type(get_args(tpe)[0])}]"
+
+    # TODO: more types
+    else:
+        return str(tpe)
 
 
 if __name__ == "__main__":
