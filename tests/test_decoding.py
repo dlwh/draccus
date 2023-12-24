@@ -4,6 +4,7 @@ from enum import Enum, auto
 
 import yaml
 
+import draccus
 from draccus.utils import DraccusException
 
 from .testutils import *
@@ -134,7 +135,3 @@ def test_super_nesting():
     c = Complicated()
     c.x = [[[{0: (2, 1.23, "bob", [1.2, 1.3])}]]]
     assert draccus.decode(Complicated, draccus.encode(c)) == c
-
-
-#
-#

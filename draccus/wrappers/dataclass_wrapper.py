@@ -7,8 +7,7 @@ from draccus.utils import Dataclass, DataclassType
 
 from .. import utils
 from ..choice_types import ChoiceType
-
-# from ..parsers.decoding import get_decoding_fn, has_custom_decoder
+from ..parsers.decoding import has_custom_decoder
 from . import docstring
 from .choice_wrapper import ChoiceWrapper
 from .field_wrapper import FieldWrapper
@@ -154,10 +153,10 @@ def _wrap_field(
     if not field.init:
         return None
 
-    # elif has_custom_decoder(field.type):
-    #     field_wrapper = field_wrapper_class(field, parent=self, prefix=self.prefix)
-    #     logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
-    #     return field_wrapper
+    elif has_custom_decoder(field.type):
+        field_wrapper = FieldWrapper(field, parent=parent, preferred_help=preferred_help)
+        logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
+        return field_wrapper
     elif utils.is_choice_type(field.type):
         return ChoiceWrapper(
             cast(Type[ChoiceType], field.type), field.name, parent=parent, _field=field, preferred_help=preferred_help

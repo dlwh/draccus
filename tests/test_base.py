@@ -179,3 +179,19 @@ def test_using_a_Type_type():
 
     foo = OtherFoo.setup("")
     assert foo.a == Extended()
+
+
+@dataclass
+class SomeClass:
+    val: str
+
+
+def test_argparse_with_custom_parsing():
+    @dataclass
+    class Config(TestSetup):
+        s: SomeClass = SomeClass("bob")
+
+    draccus.encode.register(SomeClass, lambda x: f"custom_{x.val}")
+    draccus.decode.register(SomeClass, lambda x: SomeClass(x[7:]))
+
+    Config.setup("--s custom_bob")
