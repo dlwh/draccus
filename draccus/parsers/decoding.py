@@ -1,5 +1,6 @@
 """ Functions for decoding dataclass fields from "raw" values (e.g. from json).
 """
+import functools
 import typing
 from collections import OrderedDict
 from dataclasses import MISSING, fields, is_dataclass
@@ -210,7 +211,23 @@ def get_decoding_fn(cls: Type[T]) -> DecodingFunction[T]:
         if cached_func.include_subclasses:
             return partial(cached_func.func, cls)
         else:
-            return cached_func.func
+            fn = cached_func.func
+
+            # we want to support the old interface where the decoding function
+            # takes only one argument, so we wrap it here
+            @functools.wraps(fn)
+            def backwards_compat_call(raw_value: Any, path: Sequence[str] = ()) -> T:
+                try:
+                    return fn(raw_value, path)
+                except TypeError:
+                    try:
+                        return fn(raw_value)
+                    except Exception as e:  # pylint: disable=broad-except
+                        raise DecodingError(
+                            path, f"Couldn't parse '{raw_value}' into a {stringify_type(cls)}: {e}"
+                        ) from e
+
+            return backwards_compat_call
 
     elif is_choice_type(cls):
         return partial(decode_choice_class, cls)
