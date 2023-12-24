@@ -394,9 +394,8 @@ class StringHolderEnum(type):
 
 
 def canonicalize_union(t: Type):
-    if sys.version_info >= (3, 10):
-        if isinstance(t, types.UnionType):
-            return Union[t.__args__]
+    if sys.version_info >= (3, 10) and isinstance(t, types.UnionType):
+        return Union[tuple(canonicalize_union(u) for u in t.__args__)]
     # recursively canonicalize
     args = get_args(t)
     if args:

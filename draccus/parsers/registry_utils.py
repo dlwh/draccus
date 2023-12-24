@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from functools import _find_impl, update_wrapper  # type: ignore
 from typing import Callable, Optional
 
+from draccus.utils import canonicalize_union
+
 
 @dataclass
 class RegistryFunc:
@@ -22,6 +24,8 @@ def withregistry(base_func):
 
     def dispatch(cls) -> Optional[RegistryFunc]:
         nonlocal cache_token
+        # Python 3.10: you can't have weak refs to x|y union types, so we need to canonicalize
+        cls = canonicalize_union(cls)
         if cache_token is not None:
             current_token = get_cache_token()
             if cache_token != current_token:
