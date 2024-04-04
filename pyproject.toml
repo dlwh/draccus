@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "draccus"
-version = "0.7.1"
+version = "0.7.2"
 authors = [
   {name = "David Hall", email = "dlwh@cs.stanford.edu"},
   {name = "Siddharth Karamcheti", email = "skaramcheti@cs.stanford.edu"},
@@ -24,11 +24,11 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
-    "mergedeep",
-    "pyyaml",
-    "pyyaml-include==1.4.1",
-    "toml",
-    "typing-inspect",
+    "mergedeep~=1.3",
+    "pyyaml~=6.4",
+    "pyyaml-include~=1.4",
+    "toml~=0.10",
+    "typing-inspect~=0.9.0",
 ]
 
 [project.optional-dependencies]
