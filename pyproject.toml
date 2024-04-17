@@ -26,7 +26,7 @@ classifiers = [
 dependencies = [
     "mergedeep",
     "pyyaml",
-    "pyyaml-include",
+    "pyyaml-include==1.4.1",
     "toml",
     "typing-inspect",
 ]
