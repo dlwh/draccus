@@ -353,7 +353,14 @@ def decode_union(*types: Type[T]) -> DecodingFunction[T]:
                 else:
                     message += f"{' ' * (5 + len(str(descriptor)))}{line}\n"
 
-        raise DecodingError(path, message) from exceptions[next(iter(exceptions))]
+        exception_to_raise_from = next(iter(exceptions.values()))
+        # we'd prefer to find the first exception with an interesting message (not a DecodingError)
+        for ex in exceptions.values():
+            if not isinstance(ex, DecodingError):
+                exception_to_raise_from = ex
+                break
+
+        raise DecodingError(path, message) from exception_to_raise_from
 
     return _try_functions
 
