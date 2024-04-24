@@ -12,7 +12,7 @@ def parse_string(s):
     return parser.parse_string(s)
 
 
-def load_config(stream, file=None):
+def load_config(stream, *, file=None):
     if file is not None:
         if file.endswith(".toml"):
             with config_type("toml"):

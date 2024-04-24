@@ -106,6 +106,7 @@ class ArgumentParser(Generic[T]):
         self,
         args: Optional[Sequence[Text]] = None,
         namespace: Optional[Namespace] = None,
+        *,
         is_parse_args: bool = False,
     ):
         # NOTE: since the usual ArgumentParser.parse_args() calls
@@ -154,7 +155,7 @@ class ArgumentParser(Generic[T]):
             del parsed_arg_values[utils.CONFIG_ARG]
 
         if config_path is not None:
-            file_args = cfgparsing.load_config(open(config_path, "r"), config_path)
+            file_args = cfgparsing.load_config(open(config_path, "r"), file=config_path)
         else:
             file_args = {}
 
