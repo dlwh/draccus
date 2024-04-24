@@ -1,7 +1,7 @@
 from typing import Type
 
 from draccus import utils
-from draccus.options import Options
+from draccus.options import Options, config_type
 from draccus.parsers.decoding import decode
 from draccus.parsers.encoding import encode
 from draccus.utils import Dataclass
@@ -12,7 +12,17 @@ def parse_string(s):
     return parser.parse_string(s)
 
 
-def load_config(stream):
+def load_config(stream, file=None):
+    if file is not None:
+        if file.endswith(".toml"):
+            with config_type("toml"):
+                return load_config(stream)
+        elif file.endswith(".json"):
+            with config_type("json"):
+                return load_config(stream)
+        elif file.endswith(".yaml") or file.endswith(".yml"):
+            with config_type("yaml"):
+                return load_config(stream)
     parser = Options.get_config_type().value
     return parser.load_config(stream)
 
