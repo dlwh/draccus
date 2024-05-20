@@ -14,6 +14,13 @@ class Color(Enum):
     orange: str = auto()  # type: ignore
 
 
+class BigColor(Enum):
+    BLUE: str = "blue"
+    RED: str = "red"
+    GREEN: str = "green"
+    TRICKY: str = "orange"
+
+
 def test_passing_enum_to_choice():
     @dataclass
     class Something(TestSetup):
@@ -26,6 +33,24 @@ def test_passing_enum_to_choice():
 
     s = Something.setup("--colors [blue,red]")
     assert s.colors == [Color.blue, Color.red]
+
+
+def test_passing_enum_to_choice_from_value():
+    @dataclass
+    class Something(TestSetup):
+        favorite_color: BigColor = field(default=BigColor.GREEN)
+        colors: List[BigColor] = field(default_factory=[BigColor.GREEN].copy)
+
+    s = Something.setup("")
+    assert s.favorite_color == BigColor.GREEN
+    assert s.colors == [BigColor.GREEN]
+
+    s = Something.setup("--colors '[blue, red]'")
+    assert s.colors == [BigColor.BLUE, BigColor.RED]
+
+    # try tricky
+    s = Something.setup("--colors '[blue,orange]'")
+    assert s.colors == [BigColor.BLUE, BigColor.TRICKY]
 
 
 #

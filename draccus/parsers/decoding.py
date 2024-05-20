@@ -296,9 +296,12 @@ def decode_enum(cls: Type[T], raw_value: Any, path) -> T:
         raise Exception(f"Expected an enum type, got {cls}")
 
     try:
-        return cls[raw_value]  # type: ignore
-    except ValueError as e:
-        raise DecodingError(path, f"Couldn't parse '{raw_value}' into an enum of type {cls}") from e
+        return cls(raw_value)  # type: ignore
+    except ValueError:
+        try:
+            return cls[raw_value]  # type: ignore
+        except ValueError as e:
+            raise DecodingError(path, f"Couldn't parse '{raw_value}' into an enum of type {cls}") from e
 
 
 def decode_optional(t: Type[T]) -> DecodingFunction[Optional[T]]:
