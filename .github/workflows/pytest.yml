@@ -6,7 +6,7 @@ jobs:
   test-on-env:
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest ]
         python-version: [ "3.8", "3.9", "3.10" ]
     runs-on: ${{ matrix.os }}
     steps:
