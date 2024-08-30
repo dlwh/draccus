@@ -141,7 +141,11 @@ class ArgumentParser(Generic[T]):
         parsed_arg_values = vars(parsed_args)
 
         for key in parsed_arg_values:
-            parsed_arg_values[key] = cfgparsing.parse_string(parsed_arg_values[key])
+            parsed_value = cfgparsing.parse_string(parsed_arg_values[key])
+            if isinstance(parsed_value, str) and parsed_value.startswith("include"):
+                parsed_arg_values[key] = cfgparsing.load_config(open(parsed_value[8:], "r"))
+            else:
+                parsed_arg_values[key] = parsed_value
 
         config_path = self.config_path  # Could be NONE
 
