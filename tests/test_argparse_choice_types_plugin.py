@@ -50,7 +50,7 @@ def test_choice_registry_examine_help():
 
     # TODO: why is the default: None here?
     target = """
-usage: draccus [-h] [--config_path str] [--model.type {mlp,gpt}]
+usage: draccus [-h] [--config_path str] [--model str] [--model.type {mlp,gpt}]
                [--model.hidden_size int] [--model.layers int]
                [--model.attn_pdrop float]
 
@@ -58,6 +58,7 @@ options:
   -h, --help            show this help message and exit
   --config_path str     Path for a config file to parse with draccus (default:
                         None)
+  --model str           Config file for model (default: None)
 
 test_choice_registry_examine_help.<locals>.Something:
 
@@ -77,5 +78,5 @@ GptConfig ['model']:
   --model.layers int
   --model.attn_pdrop float
 """
-
+    print(Something.get_help_text())
     assert Something.get_help_text().strip() == target.strip()

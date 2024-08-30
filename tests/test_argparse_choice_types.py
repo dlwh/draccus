@@ -56,14 +56,15 @@ class Something(TestSetup):
 def test_choice_registry_examine_help():
     # TODO: why is the default: None here?
     target = """
-usage: draccus [-h] [--config_path str] [--person.type {adult,child}]
-               [--person.age int] [--person.name str]
-               [--person.favorite_toy str]
+    usage: draccus [-h] [--config_path str] [--person str]
+               [--person.type {adult,child}] [--person.age int]
+               [--person.name str] [--person.favorite_toy str]
 
 options:
   -h, --help            show this help message and exit
   --config_path str     Path for a config file to parse with draccus (default:
                         None)
+  --person str          Config file for person (default: None)
 
 Something:
 
@@ -83,5 +84,5 @@ Child ['person']:
   --person.favorite_toy str
                         Child's favorite toy (default: None)
 """
-
+    print(Something.get_help_text().strip())
     assert Something.get_help_text().strip() == target.strip()
