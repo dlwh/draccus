@@ -103,6 +103,31 @@ workers: 42
 model: !include model_config.yaml
 ```
 
+### Inclusion of config files using Command Line Arguments using `include ` keyword
+
+You can use `include` keyword in the command line arguments to include a config file in a nested way.
+
+It works like this:
+```yaml
+# model_config.yaml
+type: bert_cli
+num_layers: 48
+num_heads: 48
+```
+
+```yaml
+# train_config.yaml
+exp_name: my_yaml_exp
+workers: 42
+model: 
+  type: bert
+  num_layers: 24
+  num_heads: 24
+```
+
+Using `python train_model.py --config_path=train_config.yaml --model="include model_config.yaml"` 
+will give `cfg.model.type = 'bert_cli'`
+
 ### Including Configs at Top Level
 
 PyYAML, upon which draccus is based, supports a common YAML extension `<<` for merging keys from multiple maps.
