@@ -143,7 +143,12 @@ class ArgumentParser(Generic[T]):
         for key in parsed_arg_values:
             parsed_value = cfgparsing.parse_string(parsed_arg_values[key])
             if isinstance(parsed_value, str) and parsed_value.startswith("include"):
-                parsed_arg_values[key] = cfgparsing.load_config(open(parsed_value[8:], "r"))
+                try:
+                    parsed_arg_values[key] = cfgparsing.load_config(open(parsed_value[8:], "r"))
+                except FileNotFoundError as e:
+                    raise FileNotFoundError(f"{e}. Include is a reserved cli keyword. "
+                                            f"If your argument uses include, "
+                                            f"Please refer to https://github.com/dlwh/draccus/issues/17")
             else:
                 parsed_arg_values[key] = parsed_value
 
