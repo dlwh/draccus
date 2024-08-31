@@ -60,6 +60,9 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
 
         for child in self._children:
             if isinstance(child, AggregateWrapper):
+                # Child name will always be populated as this is done via our code inside `_wrap_field`
+                parser.add_argument("--" + child.name , type=str, required=False,
+                                    help="Config file for " + child.name)
                 child.register_actions(parser)
             elif isinstance(child, FieldWrapper):
                 child.add_action(group)
