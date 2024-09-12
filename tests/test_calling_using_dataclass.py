@@ -13,4 +13,4 @@ def function_with_draccus_wrap(cfg: TrainConfig):
 
 def test_calling_using_dataclasses():
     config = TrainConfig(workers=8)
-    function_with_draccus_wrap(config_dataclass=config)
+    function_with_draccus_wrap(config)

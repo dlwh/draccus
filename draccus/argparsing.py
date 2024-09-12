@@ -208,9 +208,9 @@ def wrap(config_path: Optional[os.PathLike] = None, preferred_help: str = HelpOr
         def wrapper_inner(*args, **kwargs):
             argspec = inspect.getfullargspec(fn)
             argtype = argspec.annotations[argspec.args[0]]
-            if "config_dataclass" in kwargs and type(kwargs["config_dataclass"]) is argtype:
-                cfg = kwargs["config_dataclass"]
-                del kwargs["config_dataclass"]
+            if len(args) > 0 and type(args[0]) is argtype:
+                cfg = args[0]
+                args = args[1:]
             else:
                 cfg = parse(config_class=argtype, config_path=config_path, preferred_help=preferred_help)
             response = fn(cfg, *args, **kwargs)
