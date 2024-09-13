@@ -89,7 +89,7 @@ def test_union_error_message_nested():
 
     assert """`x`: Could not decode the value into any of the given types:
     float: Couldn't parse '1.2.3' into a float
-    int: Couldn't parse '1.2.3' into a int
+    int: Couldn't parse '1.2.3' into an int
     bool: Couldn't parse '1.2.3' into a bool""" in str(
         e.value
     )
@@ -135,7 +135,7 @@ def test_union_error_message_dataclasses():
         Foo.setup("--x.z 1.2.3")
 
     assert """`x`: Could not decode the value into any of the given types:
-    Baz: `z`: Couldn't parse '1.2.3' into a int
+    Baz: `z`: Couldn't parse '1.2.3' into an int
     Bar: `z`: Couldn't parse '1.2.3' into a bool""".strip() in str(
         e.value
     )

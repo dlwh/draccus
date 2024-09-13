@@ -224,11 +224,11 @@ class UnionWrapper(AggregateWrapper[type]):
             )
 
     @cached_property
-    def _children(self) -> Dict[str, Wrapper]:
+    def _children(self) -> Dict[str, Optional[Wrapper]]:
         from .dataclass_wrapper import DataclassWrapper
         from .field_wrapper import FieldWrapper
 
-        def _wrap_child(child: Type) -> Wrapper:
+        def _wrap_child(child: Type) -> Optional[Wrapper]:
             if has_custom_decoder(child):
                 assert self._field is not None
                 field = FieldWrapper(parent=self.parent, field=self._field, preferred_help=self.preferred_help)
@@ -242,6 +242,8 @@ class UnionWrapper(AggregateWrapper[type]):
                 return ChoiceWrapper(child, parent=self.parent, _field=self._field, preferred_help=self.preferred_help)
             elif is_union(child):
                 return UnionWrapper(child, parent=self.parent, _field=self._field, preferred_help=self.preferred_help)
+            elif child is None or child is type(None):
+                return None
             else:
                 raise ValueError(f"Unexpected child type: {child}")
 
