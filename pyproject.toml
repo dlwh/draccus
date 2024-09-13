@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "draccus"
-version = "0.8.0"
+version = "0.9.1"
 authors = [
   {name = "David Hall", email = "dlwh@cs.stanford.edu"},
   {name = "Siddharth Karamcheti", email = "skaramcheti@cs.stanford.edu"},

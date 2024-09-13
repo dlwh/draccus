@@ -56,7 +56,7 @@ def decode_from_init(cls: Type[T], raw_value: Any, path: Sequence[str]) -> T:
         raise DecodingError(path, f"Couldn't parse '{raw_value}' into a {stringify_type(cls)}") from e
 
 
-for t in [str, float, int, bytes]:
+for t in [str, float, bytes]:
     decode.register(t, partial(decode_from_init, t))
 
 
@@ -69,6 +69,17 @@ def decode_bool(raw_value: Any, path) -> bool:
         return False
     else:
         raise DecodingError(path, f"Couldn't parse '{raw_value}' into a bool")
+
+
+@decode.register(int)
+def decode_int(raw_value: Any, path) -> int:
+    try:
+        # reject floats etc:
+        if isinstance(raw_value, float):
+            raise ValueError(f"Expected an int, got a float: {raw_value}")
+        return int(raw_value)
+    except ValueError as e:
+        raise DecodingError(path, f"Couldn't parse '{raw_value}' into an int") from e
 
 
 def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any], path: Sequence[str] = ()) -> Dataclass:
@@ -183,12 +194,7 @@ def decode_choice_class(cls: Type[T], raw_value: Any, path: Sequence[str]) -> T:
 def has_custom_decoder(cls: Type[T]):
     cached_func: RegistryFunc = decode.dispatch(cls)
 
-    if cached_func is not None:
-        # If supports subclasses, pass the actual type
-        if cached_func.include_subclasses:
-            return partial(cached_func.func, cls)
-        else:
-            return cached_func.func
+    return cached_func is not None
 
 
 @lru_cache(maxsize=100)

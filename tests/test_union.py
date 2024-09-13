@@ -95,6 +95,28 @@ def test_union_error_message_nested():
     )
 
 
+def test_decode_union_with_dataclass_and_atomic():
+    @dataclass
+    class Baz:
+        z: int
+
+    @dataclass
+    class Foo(TestSetup):
+        x: Union[bool, Baz]
+
+    foo = Foo.setup("--x false")
+    assert foo.x is False
+
+    foo = Foo.setup("--x.z 1")
+    assert foo.x == Baz(z=1)
+
+    try:
+        foo = Foo.setup("--x.z 1.2")
+        raise AssertionError()
+    except DecodingError:
+        pass
+
+
 def test_union_error_message_dataclasses():
     @dataclass
     class Baz:

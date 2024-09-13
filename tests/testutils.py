@@ -3,7 +3,7 @@ import sys
 import tempfile
 from contextlib import contextmanager, redirect_stderr
 from io import StringIO
-from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, Type, TypeVar, cast
+from typing import Any, Callable, List, Optional, Type, TypeVar
 
 import pytest
 

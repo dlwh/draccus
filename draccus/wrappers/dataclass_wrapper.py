@@ -9,7 +9,6 @@ from .. import utils
 from ..choice_types import ChoiceType
 from ..parsers.decoding import has_custom_decoder
 from . import docstring
-from .choice_wrapper import ChoiceWrapper
 from .field_wrapper import FieldWrapper
 from .wrapper import AggregateWrapper, Wrapper
 
@@ -61,8 +60,7 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
         for child in self._children:
             if isinstance(child, AggregateWrapper):
                 # Child name will always be populated as this is done via our code inside `_wrap_field`
-                parser.add_argument("--" + child.name , type=str, required=False,
-                                    help="Config file for " + child.name)
+                parser.add_argument("--" + child.name, type=str, required=False, help="Config file for " + child.name)
                 child.register_actions(parser)
             elif isinstance(child, FieldWrapper):
                 child.add_action(group)
@@ -161,6 +159,8 @@ def _wrap_field(
         logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
         return field_wrapper
     elif utils.is_choice_type(field.type):
+        from .choice_wrapper import ChoiceWrapper
+
         return ChoiceWrapper(
             cast(Type[ChoiceType], field.type), field.name, parent=parent, _field=field, preferred_help=preferred_help
         )
@@ -181,14 +181,11 @@ def _wrap_field(
 
     elif utils.is_optional_or_union_with_dataclass_type_arg(field.type):
         # TODO(dlwh): I don't like this. Add UnionWrapper or something
-        dataclass = utils.get_dataclass_type_arg(field.type)  # type: ignore
         name = field.name
-        child_wrapper = DataclassWrapper(
-            dataclass, name, default=None, parent=parent, _field=field, preferred_help=preferred_help
-        )
-        child_wrapper.required = False
-        child_wrapper.optional = True
-        return child_wrapper
+        from .choice_wrapper import UnionWrapper
+
+        wrapper = UnionWrapper(field.type, name=name, parent=parent, _field=field, preferred_help=preferred_help)
+        return wrapper
 
     else:
         # a normal attribute
