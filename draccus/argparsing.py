@@ -99,16 +99,15 @@ class ArgumentParser(Generic[T]):
             raise DraccusException(f"{utils.CONFIG_ARG} is a reserved word for draccus")
 
     def parse_args(self, args=None, namespace=None) -> T:
-        args, argv = self.parse_known_args(args, namespace)
-        if argv:
-            msg = gettext("unrecognized arguments: %s")
-            self.parser.error(msg % " ".join(argv))
+        args, _ = self.parse_known_args(args, namespace, is_parse_args=True)
         return args
 
     def parse_known_args(
         self,
         args: Optional[Sequence[Text]] = None,
         namespace: Optional[Namespace] = None,
+        *,
+        is_parse_args: bool = False,
     ):
         # NOTE: since the usual ArgumentParser.parse_args() calls
         # parse_known_args, we therefore just need to overload the
@@ -127,6 +126,9 @@ class ArgumentParser(Generic[T]):
                 action.default = argparse.SUPPRESS  # To avoid setting of defaults in actual run
                 action.type = str  # In practice, we want all processing to happen with yaml
         parsed_args, unparsed_args = self.parser.parse_known_args(args, namespace)
+        if is_parse_args and unparsed_args:
+            msg = gettext("unrecognized arguments: %s")
+            self.parser.error(msg % " ".join(unparsed_args))
 
         parsed_t = self._postprocessing(parsed_args)
         return parsed_t, unparsed_args
@@ -162,7 +164,7 @@ class ArgumentParser(Generic[T]):
             del parsed_arg_values[utils.CONFIG_ARG]
 
         if config_path is not None:
-            file_args = cfgparsing.load_config(open(config_path, "r"))
+            file_args = cfgparsing.load_config(open(config_path, "r"), file=config_path)
         else:
             file_args = {}
 
