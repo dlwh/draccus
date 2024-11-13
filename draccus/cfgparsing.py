@@ -14,13 +14,14 @@ def parse_string(s):
 
 def load_config(stream, *, file=None):
     if file is not None:
-        if file.endswith(".toml"):
+        fpath = str(file)
+        if fpath.endswith(".toml"):
             with config_type("toml"):
                 return load_config(stream)
-        elif file.endswith(".json"):
+        elif fpath.endswith(".json"):
             with config_type("json"):
                 return load_config(stream)
-        elif file.endswith(".yaml") or file.endswith(".yml"):
+        elif fpath.endswith(".yaml") or fpath.endswith(".yml"):
             with config_type("yaml"):
                 return load_config(stream)
     parser = Options.get_config_type().value
