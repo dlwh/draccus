@@ -1,5 +1,6 @@
 import argparse
 import dataclasses
+import inspect
 from dataclasses import Field
 from functools import cached_property
 from typing import Dict, Optional, Type
@@ -238,7 +239,7 @@ class UnionWrapper(AggregateWrapper[type]):
                 return DataclassWrapper(
                     child, name=self.name, parent=self.parent, _field=self._field, preferred_help=self.preferred_help
                 )
-            elif issubclass(child, ChoiceType):
+            elif inspect.isclass(child) and issubclass(child, ChoiceType):
                 return ChoiceWrapper(child, parent=self.parent, _field=self._field, preferred_help=self.preferred_help)
             elif is_union(child):
                 return UnionWrapper(child, parent=self.parent, _field=self._field, preferred_help=self.preferred_help)
