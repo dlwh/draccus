@@ -3,7 +3,7 @@ import dataclasses
 import inspect
 from dataclasses import Field
 from functools import cached_property
-from typing import Dict, Optional, Type
+from typing import Dict, Optional, Sequence, Type
 
 from ..choice_types import CHOICE_TYPE_KEY, ChoiceType
 from ..parsers.decoding import has_custom_decoder
@@ -195,7 +195,7 @@ class UnionWrapper(AggregateWrapper[type]):
 
         has_field_wrapper = False
 
-        for child in children.values():
+        for child in children:
             from .dataclass_wrapper import DataclassWrapper
 
             if isinstance(child, DataclassWrapper):
@@ -225,7 +225,7 @@ class UnionWrapper(AggregateWrapper[type]):
             )
 
     @cached_property
-    def _children(self) -> Dict[str, Optional[Wrapper]]:
+    def _children(self) -> Sequence[Optional[Wrapper]]:
         from .dataclass_wrapper import DataclassWrapper
         from .field_wrapper import FieldWrapper
 
@@ -246,6 +246,9 @@ class UnionWrapper(AggregateWrapper[type]):
             elif child is None or child is type(None):
                 return None
             else:
-                raise ValueError(f"Unexpected child type: {child}")
+                assert self._field is not None
+                wrapper = FieldWrapper(parent=self.parent, field=self._field, preferred_help=self.preferred_help)
+                wrapper.required = False
+                return wrapper
 
-        return {child.__name__: _wrap_child(child) for child in self.union.__args__}
+        return [_wrap_child(child) for child in self.union.__args__]

@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Union
+from dataclasses import dataclass, field
+from typing import Dict, Union
 
 import pytest
 
@@ -148,3 +148,16 @@ def test_union_error_message_dataclasses():
     Bar: The fields `y` are not valid for Bar""".strip() in str(
         e.value
     )
+
+
+def test_union_argparse_dict():
+    @dataclass
+    class Bar:
+        y: int
+
+    @dataclass
+    class Foo(TestSetup):
+        x: Optional[Union[Bar, Dict[str, Bar]]] = field(default=None)
+
+    foo = Foo.setup('--x \'{"a": {"y": 1}, "b": {"y": 2}}\'')
+    assert foo.x == {"a": Bar(y=1), "b": Bar(y=2)}

@@ -180,7 +180,6 @@ def _wrap_field(
         return child_wrapper
 
     elif utils.is_optional_or_union_with_dataclass_type_arg(field.type):
-        # TODO(dlwh): I don't like this. Add UnionWrapper or something
         name = field.name
         from .choice_wrapper import UnionWrapper
 
