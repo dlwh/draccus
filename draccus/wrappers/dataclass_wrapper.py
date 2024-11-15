@@ -1,5 +1,6 @@
 import argparse
 import dataclasses
+import typing
 from logging import getLogger
 from typing import Dict, List, Optional, Type, Union, cast
 
@@ -48,9 +49,13 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
             self.defaults = [default]  # type: ignore
 
         self.optional: bool = False
+        hints = typing.get_type_hints(dataclass)
 
         for field in dataclasses.fields(self.dataclass):  # type: ignore
-            child = _wrap_field(self, field, preferred_help=self.preferred_help)
+            # have to get the real type of the field because of __future__ annotations
+            field_type = hints.get(field.name, field.type)
+
+            child = _wrap_field(self, field, preferred_help=self.preferred_help, field_type=field_type)
             if child is not None:
                 self._children.append(child)
 
@@ -150,45 +155,49 @@ def _wrap_field(
     parent: Optional[Wrapper],
     field: dataclasses.Field,
     preferred_help: str = docstring.HelpOrder.inline,
+    field_type: Optional[Type] = None,
 ) -> Optional[Wrapper]:
     if not field.init:
         return None
 
-    elif has_custom_decoder(field.type):
-        field_wrapper = FieldWrapper(field, parent=parent, preferred_help=preferred_help)
+    if field_type is None:
+        field_type = field.type
+
+    if has_custom_decoder(field_type):
+        field_wrapper = FieldWrapper(field, parent=parent, preferred_help=preferred_help, field_type=field_type)
         logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
         return field_wrapper
-    elif utils.is_choice_type(field.type):
+    elif utils.is_choice_type(field_type):
         from .choice_wrapper import ChoiceWrapper
 
         return ChoiceWrapper(
-            cast(Type[ChoiceType], field.type), field.name, parent=parent, _field=field, preferred_help=preferred_help
+            cast(Type[ChoiceType], field_type), field.name, parent=parent, _field=field, preferred_help=preferred_help
         )
 
-    elif utils.is_tuple_or_list_of_dataclasses(field.type):
+    elif utils.is_tuple_or_list_of_dataclasses(field_type):
         logger.debug(f"wrapped field at {field.name} is a list of dataclasses, treating a ordinary field for argparse")
-        field_wrapper = FieldWrapper(field, parent=parent, preferred_help=preferred_help)
+        field_wrapper = FieldWrapper(field, parent=parent, preferred_help=preferred_help, field_type=field_type)
         return field_wrapper
         # raise NotImplementedError(
         #     f"Field {field.name} is of type {field.type}, which isn't supported yet. (container of a dataclass type)"
         # )
 
-    elif dataclasses.is_dataclass(field.type):
+    elif dataclasses.is_dataclass(field_type):
         # handle a nested dataclass attribute
-        dataclass, name = (cast(DataclassType, field.type)), field.name
+        dataclass, name = (cast(DataclassType, field_type)), field.name
         child_wrapper = DataclassWrapper(dataclass, name, parent=parent, _field=field, preferred_help=preferred_help)
         return child_wrapper
 
-    elif utils.is_optional_or_union_with_dataclass_type_arg(field.type):
+    elif utils.is_optional_or_union_with_dataclass_type_arg(field_type):
         name = field.name
         from .choice_wrapper import UnionWrapper
 
-        wrapper = UnionWrapper(field.type, name=name, parent=parent, _field=field, preferred_help=preferred_help)
+        wrapper = UnionWrapper(field_type, name=name, parent=parent, _field=field, preferred_help=preferred_help)
         return wrapper
 
     else:
         # a normal attribute
-        field_wrapper = FieldWrapper(field, parent=parent, preferred_help=preferred_help)
+        field_wrapper = FieldWrapper(field, parent=parent, preferred_help=preferred_help, field_type=field_type)
         logger.debug(f"wrapped field at {field_wrapper.dest} has a default value of {field_wrapper.default}")
         # self._children.append(field_wrapper)
         return field_wrapper

@@ -232,7 +232,9 @@ class UnionWrapper(AggregateWrapper[type]):
         def _wrap_child(child: Type) -> Optional[Wrapper]:
             if has_custom_decoder(child):
                 assert self._field is not None
-                field = FieldWrapper(parent=self.parent, field=self._field, preferred_help=self.preferred_help)
+                field = FieldWrapper(
+                    parent=self.parent, field=self._field, preferred_help=self.preferred_help, field_type=child
+                )
                 field.required = False
                 return field
             elif dataclasses.is_dataclass(child):
@@ -247,7 +249,9 @@ class UnionWrapper(AggregateWrapper[type]):
                 return None
             else:
                 assert self._field is not None
-                wrapper = FieldWrapper(parent=self.parent, field=self._field, preferred_help=self.preferred_help)
+                wrapper = FieldWrapper(
+                    parent=self.parent, field=self._field, preferred_help=self.preferred_help, field_type=child
+                )
                 wrapper.required = False
                 return wrapper
 

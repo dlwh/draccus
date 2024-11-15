@@ -96,8 +96,11 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any], path: Sequence[str
 
     logger.debug(f"from_dict for {cls}")
 
+    hints = typing.get_type_hints(cls)
+
     for field in fields(cls):  # type: ignore
         name = field.name
+        field_type = hints.get(name, field.type)
         if name not in obj_dict:
             # if field.default is MISSING and field.default_factory is MISSING:
             #     logger.warning(f"Couldn't find the field '{name}' in the dict with keys {list(d.keys())}")
@@ -105,7 +108,6 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any], path: Sequence[str
 
         raw_value = obj_dict.pop(name)
         try:
-            field_type = field.type
             logger.debug(f"Decode name = {name}, type = {field_type}")
             field_value = get_decoding_fn(field_type)(raw_value, (*path, name))  # type: ignore
         except ParsingError as e:

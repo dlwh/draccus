@@ -1,11 +1,10 @@
 import json
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Tuple
 
 import yaml
 
-import draccus
 from draccus.utils import DraccusException
 
 from .testutils import *
