@@ -99,16 +99,14 @@ class TestSetup:
         return cfg
 
     @classmethod
-    def get_help_text(
-        cls,
-    ) -> str:
+    def get_help_text(cls, flag="--help") -> str:
         import contextlib
         from io import StringIO
 
         f = StringIO()
         with contextlib.suppress(SystemExit), contextlib.redirect_stdout(f):
             _ = cls.setup(
-                "--help",
+                arguments=flag,
             )
         s = f.getvalue().strip()
 

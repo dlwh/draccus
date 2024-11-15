@@ -62,4 +62,5 @@ PreferredHelpConfig:
                      (default: standard)
   --misc2 str        Controls the behavior of `misc2` (default: left-first)
     """
-    assert PreferredHelpConfig.get_help_text().strip() == target.strip()
+    assert PreferredHelpConfig.get_help_text("--help").strip() == target.strip()
+    assert PreferredHelpConfig.get_help_text("-h").strip() == target.strip()

@@ -119,7 +119,7 @@ class ArgumentParser(Generic[T]):
             # make sure that args are mutable
             args = list(args)
 
-        if "--help" not in args:
+        if "--help" not in args and "-h" not in args:
             for action in self.parser._actions:
                 # TODO(dlwh): this is so gross
                 # TODO: Find a better way to do that?
@@ -148,9 +148,11 @@ class ArgumentParser(Generic[T]):
                 try:
                     parsed_arg_values[key] = cfgparsing.load_config(open(parsed_value[8:], "r"))
                 except FileNotFoundError as e:
-                    raise FileNotFoundError(f"{e}. Include is a reserved cli keyword. "
-                                            f"If your argument uses include, "
-                                            f"Please refer to https://github.com/dlwh/draccus/issues/17")
+                    raise FileNotFoundError(
+                        f"{e}. Include is a reserved cli keyword. "
+                        "If your argument uses include, "
+                        "Please refer to https://github.com/dlwh/draccus/issues/17"
+                    ) from e
             else:
                 parsed_arg_values[key] = parsed_value
 

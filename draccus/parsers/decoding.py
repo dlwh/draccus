@@ -99,8 +99,8 @@ def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any], path: Sequence[str
     for field in fields(cls):  # type: ignore
         name = field.name
         if name not in obj_dict:
-            if field.default is MISSING and field.default_factory is MISSING:
-                logger.warning(f"Couldn't find the field '{name}' in the dict with keys {list(d.keys())}")
+            # if field.default is MISSING and field.default_factory is MISSING:
+            #     logger.warning(f"Couldn't find the field '{name}' in the dict with keys {list(d.keys())}")
             continue
 
         raw_value = obj_dict.pop(name)
