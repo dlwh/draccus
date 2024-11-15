@@ -35,11 +35,13 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
     def __init__(
         self,
         field: dataclasses.Field,
+        field_type: Type,
         parent: Optional[Wrapper] = None,
         preferred_help: str = docstring.HelpOrder.inline,
     ):
         self._field = field
         self._parent: Optional[Wrapper] = parent
+        self._type = field_type
         # Holders used to 'cache' the properties.
         # (could've used cached_property with Python 3.8).
         self._option_strings: Optional[Set[str]] = None
@@ -50,7 +52,6 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         self._dest: Optional[str] = None
         # the argparse-related options:
         self._arg_options: Dict[str, Any] = {}
-        self._type: Optional[Type[Any]] = None
 
         # preferred parse for docstring / help text in < inline | above | below >
         self.preferred_help = preferred_help
