@@ -150,6 +150,19 @@ def test_parsing_twice():
     assert cfg.a == 456
 
 
+def test_empty_required_str():
+    @dataclass
+    class Args:
+        a: str
+
+    cfg = draccus.parse(Args, args=["--a="])
+    assert cfg.a == ""
+
+
+    cfg = draccus.parse(Args, args=["--a", ""])
+    assert cfg.a == ""
+
+
 def test_using_a_Type_type():
     @dataclass
     class Base:
