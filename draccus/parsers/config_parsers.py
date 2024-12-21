@@ -33,6 +33,10 @@ class YAMLParser(Parser):
 
         from .yaml_loader import SafeLoaderWithInclusion
 
+        # yaml interprets empty strings as None, so we need to check for that
+        if s == "":
+            return s
+
         return yaml.load(s, SafeLoaderWithInclusion)
 
     @staticmethod

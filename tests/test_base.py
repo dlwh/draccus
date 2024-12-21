@@ -195,3 +195,13 @@ def test_argparse_with_custom_parsing():
     draccus.decode.register(SomeClass, lambda x: SomeClass(x[7:]))
 
     Config.setup("--s custom_bob")
+
+
+def test_empty_required_str():
+    @dataclass
+    class Args:
+        a: str
+
+    cfg = draccus.parse(Args, args=["--a="])
+
+    assert cfg.a == ""
