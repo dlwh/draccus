@@ -7,7 +7,7 @@ from typing import Dict, Optional, Sequence, Type
 
 from ..choice_types import CHOICE_TYPE_KEY, ChoiceType
 from ..parsers.decoding import has_custom_decoder
-from ..utils import canonicalize_union, is_union
+from ..utils import canonicalize_union, is_choice_type, is_union
 from . import FieldWrapper, docstring
 from .wrapper import AggregateWrapper, Wrapper
 
@@ -237,12 +237,14 @@ class UnionWrapper(AggregateWrapper[type]):
                 )
                 field.required = False
                 return field
+            elif is_choice_type(child):
+                return ChoiceWrapper(
+                    child, name=self.name, parent=self.parent, _field=self._field, preferred_help=self.preferred_help
+                )
             elif dataclasses.is_dataclass(child):
                 return DataclassWrapper(
                     child, name=self.name, parent=self.parent, _field=self._field, preferred_help=self.preferred_help
                 )
-            elif inspect.isclass(child) and issubclass(child, ChoiceType):
-                return ChoiceWrapper(child, parent=self.parent, _field=self._field, preferred_help=self.preferred_help)
             elif is_union(child):
                 return UnionWrapper(child, parent=self.parent, _field=self._field, preferred_help=self.preferred_help)
             elif child is None or child is type(None):
