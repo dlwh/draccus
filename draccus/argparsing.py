@@ -127,8 +127,11 @@ class ArgumentParser(Generic[T]):
                 action.type = str  # In practice, we want all processing to happen with yaml
         parsed_args, unparsed_args = self.parser.parse_known_args(args, namespace)
         if is_parse_args and unparsed_args:
-            msg = gettext("unrecognized arguments: %s")
-            self.parser.error(msg % " ".join(unparsed_args))
+            msg = gettext("unrecognized arguments: %s") % " ".join(unparsed_args)
+            if self.parser.exit_on_error:
+                self.parser.error(msg)
+            else:
+                raise DraccusException(msg)
 
         parsed_t = self._postprocessing(parsed_args)
         return parsed_t, unparsed_args
@@ -146,7 +149,8 @@ class ArgumentParser(Generic[T]):
             parsed_value = cfgparsing.parse_string(parsed_arg_values[key])
             if isinstance(parsed_value, str) and parsed_value.startswith("include"):
                 try:
-                    parsed_arg_values[key] = cfgparsing.load_config(open(parsed_value[8:], "r"))
+                    with open(parsed_value[len("include "):], "r") as f:
+                        parsed_arg_values[key] = cfgparsing.load_config(f)
                 except FileNotFoundError as e:
                     raise FileNotFoundError(
                         f"{e}. Include is a reserved cli keyword. "
@@ -166,7 +170,8 @@ class ArgumentParser(Generic[T]):
             del parsed_arg_values[utils.CONFIG_ARG]
 
         if config_path is not None:
-            file_args = cfgparsing.load_config(open(config_path, "r"), file=config_path)
+            with open(config_path, "r") as f:
+                file_args = cfgparsing.load_config(f, file=config_path)
         else:
             file_args = {}
 
