@@ -205,3 +205,16 @@ def test_empty_required_str():
     cfg = draccus.parse(Args, args=["--a="])
 
     assert cfg.a == ""
+
+def test_exit_on_error():
+    @dataclass
+    class Args:
+        a: int
+
+    # Note: the cases that actually trigger the SystemExit are unclear.
+    # Not all errors do. This could probably be improved.
+    with raises(SystemExit):
+        draccus.parse(Args, args=["--b=b"], exit_on_error=True)
+
+    with raises(draccus.utils.DraccusException):
+        draccus.parse(Args, args=["--b=b"], exit_on_error=False)

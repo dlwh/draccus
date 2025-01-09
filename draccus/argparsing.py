@@ -127,8 +127,11 @@ class ArgumentParser(Generic[T]):
                 action.type = str  # In practice, we want all processing to happen with yaml
         parsed_args, unparsed_args = self.parser.parse_known_args(args, namespace)
         if is_parse_args and unparsed_args:
-            msg = gettext("unrecognized arguments: %s")
-            self.parser.error(msg % " ".join(unparsed_args))
+            msg = gettext("unrecognized arguments: %s") % " ".join(unparsed_args)
+            if self.parser.exit_on_error:
+                self.parser.error(msg)
+            else:
+                raise DraccusException(msg)
 
         parsed_t = self._postprocessing(parsed_args)
         return parsed_t, unparsed_args
