@@ -4,21 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "draccus"
-version = "0.9.3"
+version = "0.10.0"
 authors = [
   {name = "David Hall", email = "dlwh@cs.stanford.edu"},
   {name = "Siddharth Karamcheti", email = "skaramcheti@cs.stanford.edu"},
 ]
 description = "A slightly opinionated framework for simple dataclass-based configurations based on Pyrallis."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {file = "LICENSE"}
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3 :: Only",
@@ -47,11 +46,11 @@ issues = "https://github.com/dlwh/draccus/issues"
 
 [tool.black]
 line-length = 121
-target-version = ["py38", "py39", "py310"]
+target-version = ["py39", "py310"]
 preview = true
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -62,7 +61,7 @@ testpaths = [
 
 [tool.ruff]
 line-length = 121
-target-version = "py38"
+target-version = "py39"
 select = ["A", "B", "E", "F", "I", "RUF", "W"]
 ignore = ["A003", "RUF009"]
 

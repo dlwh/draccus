@@ -60,6 +60,24 @@ for t in [str, float, bytes]:
     decode.register(t, partial(decode_from_init, t))
 
 
+def apply_type_map(typ: Any, type_map: Dict[TypeVar, Type]) -> Any:
+    """Recursively replaces TypeVars in container types like List[T], Dict[K, V]"""
+    if isinstance(typ, TypeVar):
+        return type_map.get(typ, typ)
+    origin = typing.get_origin(typ)
+    if origin is not None:
+        args = tuple(apply_type_map(arg, type_map) for arg in typing.get_args(typ))
+        if is_union(typ):  # union's origin doesn't like args
+            return Union[args]
+        if len(args) == 1:
+            return origin[args[0]]  # ClassVar doesn't like tuples
+        elif len(args) == 0:
+            return origin
+
+        return origin[args]
+    return typ
+
+
 @decode.register(bool)
 def decode_bool(raw_value: Any, path) -> bool:
     # only accept yaml 1.2 bools
@@ -82,75 +100,65 @@ def decode_int(raw_value: Any, path) -> int:
         raise DecodingError(path, f"Couldn't parse '{raw_value}' into an int") from e
 
 
+def is_generic_type(cls: Type[Any]) -> bool:
+    return typing.get_origin(cls) is not None
+
+
 def decode_dataclass(cls: Type[Dataclass], d: Dict[str, Any], path: Sequence[str] = ()) -> Dataclass:
-    """Parses an instance of the dataclass `cls` from the dict `d`."""
-    # if d is None:
-    #     return None
-
     path = tuple(path)
-
     obj_dict: Dict[str, Any] = d.copy()
-
     init_args: Dict[str, Any] = {}
     non_init_args: Dict[str, Any] = {}
-
     logger.debug(f"from_dict for {cls}")
 
-    hints = typing.get_type_hints(cls)
+    origin = typing.get_origin(cls)
+    if origin is not None:
+        type_args = typing.get_args(cls)
+        type_vars = origin.__parameters__
+        type_map = dict(zip(type_vars, type_args))
+    else:
+        origin = cls
+        type_map = {}
 
-    for field in fields(cls):  # type: ignore
+    hints = {name: apply_type_map(t, type_map) for name, t in typing.get_type_hints(origin).items()}
+
+    for field in fields(origin):
         name = field.name
         field_type = hints.get(name, field.type)
         if name not in obj_dict:
-            # if field.default is MISSING and field.default_factory is MISSING:
-            #     logger.warning(f"Couldn't find the field '{name}' in the dict with keys {list(d.keys())}")
             continue
-
         raw_value = obj_dict.pop(name)
         try:
             logger.debug(f"Decode name = {name}, type = {field_type}")
-            field_value = get_decoding_fn(field_type)(raw_value, (*path, name))  # type: ignore
-        except ParsingError as e:
-            raise e
-        except DecodingError as e:
+            field_value = get_decoding_fn(field_type)(raw_value, (*path, name))
+        except (ParsingError, DecodingError) as e:
             raise e
         except Exception as e:
             raise DecodingError(
                 (*path, name),
                 f"Failed when parsing value='{raw_value}' into field \"{cls}.{name}\" of type"
-                f' {field.type}.\n\tUnderlying error is "{format_error(e)}"',
+                f' {field_type}.\n\tUnderlying error is "{format_error(e)}"',
             ) from e
-
         if field.init:
             init_args[name] = field_value
         else:
             non_init_args[name] = field_value
-
     extra_args = obj_dict
-
-    # If there are arguments left over in the dict after taking all fields.
     if extra_args:
         formatted_keys = ", ".join(f"`{k}`" for k in extra_args.keys())
         raise DecodingError(path, f"The fields {formatted_keys} are not valid for {stringify_type(cls)}")
-
-    # see if there are missing required fields
-    missing_fields = []
-    for field in fields(cls):  # type: ignore
-        if field.init and field.name not in init_args and field.default is MISSING and field.default_factory is MISSING:
-            missing_fields.append(field.name)
-
+    missing_fields = [
+        field.name
+        for field in fields(origin)
+        if field.init and field.name not in init_args and field.default is MISSING and field.default_factory is MISSING
+    ]
     if missing_fields:
         formatted_keys = ", ".join(f"`{k}`" for k in missing_fields)
         raise DecodingError(path, f"Missing required field(s) {formatted_keys} for {stringify_type(cls)}")
-
-    init_args.update(extra_args)
     try:
-        instance = cls(**init_args)  # type: ignore
-    except TypeError as e:
+        instance = origin(**init_args)
+    except (TypeError, ValueError) as e:
         raise ParsingError(f"Couldn't instantiate class {stringify_type(cls)} using the given arguments.") from e
-    except ValueError as e:
-        raise ParsingError(f"Couldn't instantiate class {stringify_type(cls)} using the given arguments.") from e
-
     for name, value in non_init_args.items():
         logger.debug(f"Setting non-init field '{name}' on the instance.")
         setattr(instance, name, value)
@@ -213,7 +221,9 @@ def get_decoding_fn(cls: Type[T]) -> DecodingFunction[T]:
 
     """
     # Start by trying the dispatch mechanism
-    cached_func: RegistryFunc = decode.dispatch(cls)
+    underlying_type = typing.get_origin(cls) or cls
+    cached_func: RegistryFunc = decode.dispatch(cls) or decode.dispatch(underlying_type)
+
     if cached_func is not None:
         # If supports subclasses, pass the actual type
         if cached_func.include_subclasses:
@@ -237,17 +247,17 @@ def get_decoding_fn(cls: Type[T]) -> DecodingFunction[T]:
 
             return backwards_compat_call
 
-    elif is_choice_type(cls):
+    elif is_choice_type(underlying_type):
         return partial(decode_choice_class, cls)
 
-    elif is_dataclass(cls):
+    elif is_dataclass(underlying_type):
         return partial(decode_dataclass, cls)
 
     elif cls is Any:
         logger.debug(f"Decoding an Any type: {cls}")
         return no_op
 
-    elif is_dict(cls):
+    elif is_dict(underlying_type):
         logger.debug(f"Decoding a Dict field: {cls}")
         args = get_type_arguments(cls)
         if args is None or len(args) != 2 or has_generic_arg(args):
