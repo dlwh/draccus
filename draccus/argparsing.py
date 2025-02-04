@@ -128,7 +128,7 @@ class ArgumentParser(Generic[T]):
         parsed_args, unparsed_args = self.parser.parse_known_args(args, namespace)
         if is_parse_args and unparsed_args:
             msg = gettext("unrecognized arguments: %s") % " ".join(unparsed_args)
-            if self.parser.exit_on_error:
+            if getattr(self.parser, "exit_on_error", True):
                 self.parser.error(msg)
             else:
                 raise DraccusException(msg)
@@ -149,7 +149,7 @@ class ArgumentParser(Generic[T]):
             parsed_value = cfgparsing.parse_string(parsed_arg_values[key])
             if isinstance(parsed_value, str) and parsed_value.startswith("include"):
                 try:
-                    with open(parsed_value[len("include "):], "r") as f:
+                    with open(parsed_value[len("include ") :], "r") as f:
                         parsed_arg_values[key] = cfgparsing.load_config(f)
                 except FileNotFoundError as e:
                     raise FileNotFoundError(

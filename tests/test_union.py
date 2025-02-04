@@ -97,7 +97,7 @@ def test_union_error_message_nested():
     )
 
 
-@dataclass
+@dataclass(frozen=True)
 class Baz_u:
     z: int
 
@@ -121,13 +121,13 @@ def test_decode_union_with_dataclass_and_atomic():
         pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class Baz_e:
     z: int
     y: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class Bar_e:
     z: bool
 

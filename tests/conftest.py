@@ -105,7 +105,7 @@ def TaskHyperParameters():
         RELU = "RELU"
         LINEAR = "LINEAR"
 
-    @dataclass
+    @dataclass(frozen=True)
     class TaskHyperParameters(TestSetup):
         """
         HyperParameters for a task-specific model
@@ -137,7 +137,7 @@ class Optimizers(Enum):
 
 @pytest.fixture
 def HyperParameters(TaskHyperParameters):
-    @dataclass
+    @dataclass(frozen=True)
     class HyperParameters(TestSetup):
         """Hyperparameters of a multi-headed model."""
 

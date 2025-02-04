@@ -3,24 +3,24 @@ from dataclasses import dataclass, field
 from .testutils import *
 
 
-@dataclass
+@dataclass(frozen=True)
 class Base(TestSetup):
     """Some extension of base-class `Base`"""
 
     a: int = 1
 
 
-@dataclass
+@dataclass(frozen=True)
 class ExtendedB(Base, TestSetup):
     b: int = 2
 
 
-@dataclass
+@dataclass(frozen=True)
 class ExtendedC(Base, TestSetup):
     c: int = 3
 
 
-@dataclass
+@dataclass(frozen=True)
 class Inheritance(TestSetup):
     ext_b: ExtendedB = ExtendedB()
     ext_c: ExtendedC = ExtendedC()

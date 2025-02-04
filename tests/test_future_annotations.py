@@ -8,12 +8,12 @@ import draccus
 # it seems like typing.gettypehints doesn't really work with locals so, we just make these module scope
 
 
-@dataclass
+@dataclass(frozen=True)
 class A:
     b: int = 1
 
 
-@dataclass
+@dataclass(frozen=True)
 class C:
     a: A = A()
     elems: List[A] = field(default_factory=list)

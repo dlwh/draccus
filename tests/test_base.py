@@ -181,7 +181,7 @@ def test_using_a_Type_type():
     assert foo.a == Extended()
 
 
-@dataclass
+@dataclass(frozen=True)
 class SomeClass:
     val: str
 
@@ -205,6 +205,7 @@ def test_empty_required_str():
     cfg = draccus.parse(Args, args=["--a="])
 
     assert cfg.a == ""
+
 
 def test_exit_on_error():
     @dataclass
