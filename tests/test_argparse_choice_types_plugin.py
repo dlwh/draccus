@@ -10,7 +10,7 @@ from .testutils import TestSetup
 
 
 def test_plugin_registry_argparse():
-    @dataclasses.dataclass
+    @dataclasses.dataclass(frozen=True)
     class Something(TestSetup):
         model: ModelConfig = MlpConfig(10, 5)
 
