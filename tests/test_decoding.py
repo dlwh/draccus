@@ -18,7 +18,7 @@ class Color(Enum):
 def test_encode_something(simple_attribute):
     some_type, _, expected_value = simple_attribute
 
-    @dataclass
+    @dataclass(frozen=True)
     class SomeClass:
         d: Dict[str, some_type] = field(default_factory=dict)
         l: List[Tuple[some_type, some_type]] = field(default_factory=list)
@@ -39,7 +39,7 @@ def test_dump_load(simple_attribute, config_type, tmp_path):
     if config_type != "":
         draccus.set_config_type(config_type)
 
-    @dataclass
+    @dataclass(frozen=True)
     class SomeClass:
         val: Optional[some_type] = None
 
@@ -84,7 +84,7 @@ def test_dump_load_context():
 def test_dump_load_dicts(simple_attribute, tmp_path):
     some_type, _, expected_value = simple_attribute
 
-    @dataclass
+    @dataclass(frozen=True)
     class SomeClass:
         d: Dict[str, some_type] = field(default_factory=dict)
         l: List[Tuple[some_type, some_type]] = field(default_factory=list)
