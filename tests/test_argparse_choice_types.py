@@ -8,17 +8,17 @@ from draccus.choice_types import ChoiceRegistry
 from .testutils import TestSetup
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class Person(ChoiceRegistry):
     name: str  # Person's name
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class Adult(Person):
     age: int
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class Child(Person):
     favorite_toy: str  # Child's favorite toy
 
@@ -48,7 +48,7 @@ def test_choice_registry_argparse():
         Something.setup("--person.name hi")
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class Something(TestSetup):
     person: Person = Adult("bob", 10)
 
