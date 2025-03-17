@@ -149,7 +149,7 @@ class ArgumentParser(Generic[T]):
             parsed_value = cfgparsing.parse_string(parsed_arg_values[key])
             if isinstance(parsed_value, str) and parsed_value.startswith("include"):
                 try:
-                    with open(parsed_value[len("include ") :], "r") as f:
+                    with open(parsed_value[len("include ") :], "r", encoding="utf-8") as f:
                         parsed_arg_values[key] = cfgparsing.load_config(f)
                 except FileNotFoundError as e:
                     raise FileNotFoundError(
@@ -170,7 +170,7 @@ class ArgumentParser(Generic[T]):
             del parsed_arg_values[utils.CONFIG_ARG]
 
         if config_path is not None:
-            with open(config_path, "r") as f:
+            with open(config_path, "r", encoding="utf-8") as f:
                 file_args = cfgparsing.load_config(f, file=config_path)
         else:
             file_args = {}
