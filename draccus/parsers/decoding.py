@@ -7,7 +7,21 @@ from dataclasses import MISSING, fields, is_dataclass
 from functools import lru_cache, partial
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Protocol, Sequence, Set, Tuple, Type, TypeVar, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Protocol,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    get_args,
+)
 
 from draccus.choice_types import CHOICE_TYPE_KEY, ChoiceType
 from draccus.parsers.registry_utils import RegistryFunc, withregistry
@@ -22,6 +36,7 @@ from draccus.utils import (
     is_dict,
     is_enum,
     is_list,
+    is_literal,
     is_set,
     is_tuple,
     is_union,
@@ -297,6 +312,9 @@ def get_decoding_fn(cls: Type[T]) -> DecodingFunction[T]:
     elif is_enum(cls):
         return partial(decode_enum, cls)
 
+    elif is_literal(cls):
+        return partial(decode_literal, type_=cls)
+
     import typing_inspect as tpi
 
     if tpi.is_typevar(cls):
@@ -477,3 +495,33 @@ def no_op(raw_value: T, path) -> T:
 
 
 decode.register(Path, partial(decode_from_init, Path))
+
+
+def decode_literal(raw_value, path, type_):
+    """Decodes a value into a literal type, similar to how enums are handled."""
+    allowed_values = get_args(type_)
+
+    # First try direct equality
+    for value in allowed_values:
+        if raw_value == value and type(raw_value) == type(value):
+            return value
+
+    # Then try type conversion if the value is numeric
+    if isinstance(raw_value, (str, int, float)):
+        for value in allowed_values:
+            if isinstance(value, (int, float)):
+                try:
+                    converted = type(value)(raw_value)
+                    if converted == value:
+                        return value
+                except (ValueError, TypeError):
+                    continue
+            elif isinstance(value, bool) and isinstance(raw_value, str):
+                if raw_value.lower() == str(value).lower():
+                    return value
+
+    # If nothing worked, raise an error with a descriptive message
+    raise DecodingError(
+        path,
+        f"Cannot convert '{raw_value}' ({type(raw_value)}) into one of: {', '.join(str(v) for v in allowed_values)}",
+    )

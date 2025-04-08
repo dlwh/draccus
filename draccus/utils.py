@@ -194,6 +194,17 @@ def is_union(t: Type) -> bool:
     return False
 
 
+def is_literal(t: Type) -> bool:
+    """Returns True if t is a Literal type."""
+    try:
+        from typing import Literal
+
+        return getattr(t, "__origin__", None) is Literal
+    except ImportError:
+        # For Python < 3.8
+        return False
+
+
 def is_homogeneous_tuple_type(t: Type[Tuple]) -> bool:
     if not is_tuple(t):
         return False

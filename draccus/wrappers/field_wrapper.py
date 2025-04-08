@@ -94,13 +94,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         """Create the `parser.add_arguments` kwargs for this field."""
         if not self.field.init:
             return {}
-        # TODO: Refactor this:
-        # 1. Create a `get_argparse_options_for_field` function
-        # 2. Use `get_argparse_options_for_annotation` below as part of that function
-        # 3. Update the dict returned from 1. with values set in the field() function
-        # 4. Update the dict from 3. with the values set by the DataclassWrapper, or
-        # when this field is reused. (are they ever modified externally?)
-        # 5. Return that dictionary.
+
         _arg_options: Dict[str, Any] = {}
 
         _arg_options["required"] = False  # Required arguments can also be set from yaml,
@@ -116,15 +110,34 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
             _arg_options["help"] = " "
 
         tpe = self.type
-
         tpe = utils.canonicalize_union(tpe)
 
-        _arg_options["type"] = tpe
-        try:
-            _arg_options["type"].__name__ = self.type.__repr__().replace("typing.", "")
-        except Exception:
-            # Only to prettify printing, if fails just continue
-            pass
+        if self.is_literal:
+            args = utils.get_type_arguments(tpe)
+            # For mixed literals, we need to handle each value type separately
+            if all(isinstance(c, (int, float)) for c in args):
+                # If all choices are numeric, use the original type for parsing
+                tpe = type(args[0])  # Use original type for parsing
+                _arg_options["type"] = tpe
+                _arg_options["choices"] = args  # Use original values for choices
+            elif all(isinstance(c, str) for c in args):
+                # If all choices are strings, use str type
+                _arg_options["type"] = str
+                _arg_options["choices"] = args
+            else:
+                # For mixed literals, we need to handle type conversion in the action
+                _arg_options["type"] = str
+                _arg_options["choices"] = args  # Keep original values for choices
+
+            if not _arg_options.get("help"):
+                _arg_options["help"] = f"Must be one of: {', '.join(str(c) for c in args)}"
+        else:
+            _arg_options["type"] = tpe
+            try:
+                _arg_options["type"].__name__ = self.type.__repr__().replace("typing.", "")
+            except Exception:
+                # Only to prettify printing, if fails just continue
+                pass
 
         return _arg_options
 
@@ -296,6 +309,11 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
     @property
     def is_union(self) -> bool:
         return utils.is_union(self.field.type)
+
+    @property
+    def is_literal(self) -> bool:
+        """Returns True if the field's type is a Literal type."""
+        return utils.is_literal(self.type)
 
     @property
     def type_arguments(self) -> Optional[Tuple[Type, ...]]:
