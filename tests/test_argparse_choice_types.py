@@ -84,5 +84,4 @@ Child ['person']:
   --person.favorite_toy str
                         Child's favorite toy (default: None)
 """
-    print(Something.get_help_text().strip())
     assert Something.get_help_text().strip() == target.strip()
