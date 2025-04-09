@@ -94,9 +94,11 @@ class TestSetup:
             f = tempfile.NamedTemporaryFile(suffix=".yaml")
             with open(f.name, "w") as fd:
                 fd.write(config)
-            cfg = draccus.parse(config_class=cls, args=arguments, prog="draccus", config_path=f.name, **kwargs)
+            cfg = draccus.parse(
+                config_class=cls, args=arguments, prog="draccus", config_path=f.name, **kwargs, exit_on_error=False
+            )
         else:
-            cfg = draccus.parse(config_class=cls, args=arguments, prog="draccus", **kwargs)
+            cfg = draccus.parse(config_class=cls, args=arguments, prog="draccus", **kwargs, exit_on_error=False)
         return cfg
 
     @classmethod

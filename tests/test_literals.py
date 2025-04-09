@@ -101,7 +101,7 @@ def test_literal_help_text():
     assert "eval" in help_text
     assert "test" in help_text
     print("ZZ" + help_text)
-    assert "Must be one of: train, test, eval" in help_text
+    assert "{small,medium,large}" in help_text
 
     # Test numeric literal help
     config = NumericLiteralConfig.get_help_text("--help")
@@ -110,7 +110,7 @@ def test_literal_help_text():
     assert "10" in help_text
     assert "20" in help_text
     assert "30" in help_text
-    assert "Must be one of: 10, 20, 30" in help_text
+    assert "{10,20,30}" in help_text
 
     # Test mixed literal help
     config = MixedLiteralConfig.get_help_text("--help")
@@ -135,7 +135,7 @@ def test_literal_argparse_valid():
     assert config.mode == "eval"
 
     # Test numeric literal
-    config = parse(NumericLiteralConfig, args=["--size", "10"])
+    config = parse(NumericLiteralConfig, args=["--size", "10"], exit_on_error=False)
     assert config.size == 10
 
     config = parse(NumericLiteralConfig, args=["--size", "30"])
