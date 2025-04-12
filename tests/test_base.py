@@ -1,6 +1,9 @@
+import argparse
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Type
+
+import pytest
 
 import draccus
 from draccus import ParsingError
@@ -91,7 +94,7 @@ def test_not_providing_required_argument_name_but_no_value_throws_error(some_typ
         a: some_type  # type: ignore
         """some docstring for attribute 'a'"""
 
-    with raises(SystemExit):
+    with pytest.raises(argparse.ArgumentError):
         _ = SomeClass.setup("--a")
 
 

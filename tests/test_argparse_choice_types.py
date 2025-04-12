@@ -1,3 +1,4 @@
+import argparse
 import dataclasses
 
 import pytest
@@ -38,7 +39,7 @@ def test_choice_registry_argparse():
     s = Something.setup("--person.type child --person.name bob --person.favorite_toy truck")
     assert s.person == Child("bob", "truck")
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(argparse.ArgumentError):
         Something.setup("--person.type baby --person.name bob")
 
     with pytest.raises(ParsingError):

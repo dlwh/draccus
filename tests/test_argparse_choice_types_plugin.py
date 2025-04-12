@@ -1,3 +1,4 @@
+import argparse
 import dataclasses
 import sys
 
@@ -28,7 +29,7 @@ def test_plugin_registry_argparse():
 
     assert s.model == GptConfig(12, 0.2)
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(argparse.ArgumentError):
         Something.setup("--model.type baby")
 
     with pytest.raises(ParsingError):
