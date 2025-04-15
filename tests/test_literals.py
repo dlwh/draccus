@@ -100,7 +100,6 @@ def test_literal_help_text():
     assert "train" in help_text
     assert "eval" in help_text
     assert "test" in help_text
-    print("ZZ" + help_text)
     assert "{small,medium,large}" in help_text
 
     # Test numeric literal help
