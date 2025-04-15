@@ -3,6 +3,7 @@ import sys
 import tempfile
 from contextlib import contextmanager, redirect_stderr
 from io import StringIO
+from os import terminal_size
 from typing import Any, Callable, List, Optional, Type, TypeVar
 
 import pytest
@@ -77,7 +78,7 @@ T = TypeVar("T")
 
 class TestSetup:
     @classmethod
-    def setup(cls: Type[Dataclass], arguments: Optional[str] = "", config: Optional[str] = None) -> Dataclass:
+    def setup(cls: Type[Dataclass], arguments: Optional[str] = "", config: Optional[str] = None, **kwargs) -> Dataclass:
         """Basic setup for a tests.
 
         Keyword Arguments:
@@ -93,18 +94,30 @@ class TestSetup:
             f = tempfile.NamedTemporaryFile(suffix=".yaml")
             with open(f.name, "w") as fd:
                 fd.write(config)
-            cfg = draccus.parse(config_class=cls, args=arguments, prog="draccus", config_path=f.name)
+            cfg = draccus.parse(
+                config_class=cls, args=arguments, prog="draccus", config_path=f.name, **kwargs, exit_on_error=False
+            )
         else:
-            cfg = draccus.parse(config_class=cls, args=arguments, prog="draccus")
+            cfg = draccus.parse(config_class=cls, args=arguments, prog="draccus", **kwargs, exit_on_error=False)
         return cfg
 
     @classmethod
     def get_help_text(cls, flag="--help") -> str:
+        import argparse
         import contextlib
         from io import StringIO
 
+        # we need to mock/override shutils terminal width for consistent test results
+        from unittest.mock import patch
+
+        forced_size = terminal_size((80, 120))
+
         f = StringIO()
-        with contextlib.suppress(SystemExit), contextlib.redirect_stdout(f):
+        with (
+            contextlib.suppress(SystemExit),
+            contextlib.redirect_stdout(f),
+            patch("shutil.get_terminal_size", return_value=forced_size),
+        ):
             _ = cls.setup(
                 arguments=flag,
             )

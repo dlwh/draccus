@@ -1,5 +1,6 @@
 # test_optional_choice_type.py
 
+import argparse
 from dataclasses import dataclass
 from typing import Optional
 
@@ -51,10 +52,8 @@ def test_optional_choice_child():
 
 
 def test_invalid_choice():
-    with pytest.raises(SystemExit) as excinfo:
+    with pytest.raises(argparse.ArgumentError):
         Profile.setup("--person.type invalid_type --person.name Jill")
-    assert excinfo.type is SystemExit
-    assert excinfo.value.code == 2
 
 
 def test_invalid_fields_adult():

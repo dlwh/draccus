@@ -125,6 +125,9 @@ class ArgumentParser(Generic[T]):
                 # TODO: Find a better way to do that?
                 action.default = argparse.SUPPRESS  # To avoid setting of defaults in actual run
                 action.type = str  # In practice, we want all processing to happen with yaml
+                if action.choices:
+                    action.choices = [str(c) for c in action.choices]
+
         parsed_args, unparsed_args = self.parser.parse_known_args(args, namespace)
         if is_parse_args and unparsed_args:
             msg = gettext("unrecognized arguments: %s") % " ".join(unparsed_args)

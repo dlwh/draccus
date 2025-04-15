@@ -7,7 +7,21 @@ from dataclasses import MISSING, fields, is_dataclass
 from functools import lru_cache, partial
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Protocol, Sequence, Set, Tuple, Type, TypeVar, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Protocol,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    get_args,
+)
 
 from draccus.choice_types import CHOICE_TYPE_KEY, ChoiceType
 from draccus.parsers.registry_utils import RegistryFunc, withregistry
@@ -22,6 +36,7 @@ from draccus.utils import (
     is_dict,
     is_enum,
     is_list,
+    is_literal,
     is_set,
     is_tuple,
     is_union,
@@ -297,6 +312,9 @@ def get_decoding_fn(cls: Type[T]) -> DecodingFunction[T]:
     elif is_enum(cls):
         return partial(decode_enum, cls)
 
+    elif is_literal(cls):
+        return partial(decode_literal, cls)
+
     import typing_inspect as tpi
 
     if tpi.is_typevar(cls):
@@ -477,3 +495,52 @@ def no_op(raw_value: T, path) -> T:
 
 
 decode.register(Path, partial(decode_from_init, Path))
+
+
+def decode_literal(cls: Type[T], raw_value: Any, path) -> T:
+    """Decodes a value into a literal type."""
+    allowed_values = get_args(cls)
+    logger.debug(f"Decoding literal value '{raw_value}' ({type(raw_value)}) into one of: {allowed_values}")
+
+    # First try direct equality with type checking
+    for value in allowed_values:
+        if raw_value == value and type(raw_value) == type(value):
+            logger.debug(f"Found direct match with value {value}")
+            return value
+
+    # Then try type conversion for string inputs
+    if isinstance(raw_value, str):
+        logger.debug(f"Attempting type conversion for string input '{raw_value}'")
+        # Try string comparison for string literals first
+        for value in allowed_values:
+            if isinstance(value, str):
+                if raw_value == value:
+                    logger.debug(f"Found string match with value {value}")
+                    return value  # type: ignore
+
+        # Try numeric conversion - only accept strings that look like numbers
+        if raw_value.replace(".", "").replace("-", "").isdigit():
+            for value in allowed_values:
+                if isinstance(value, (int, float)):
+                    try:
+                        converted = type(value)(raw_value)
+                        if converted == value:
+                            logger.debug(f"Successfully converted to numeric value {value}")
+                            return value  # type: ignore
+                    except (ValueError, TypeError):
+                        continue
+
+        # Try boolean conversion - only accept "true" or "false"
+        if raw_value.lower() in ("true", "false"):
+            converted = raw_value.lower() == "true"
+            for value in allowed_values:
+                if isinstance(value, bool) and converted == value:
+                    logger.debug(f"Successfully converted to boolean value {value}")
+                    return value  # type: ignore
+
+    # If nothing worked, raise an error with a descriptive message
+    error_msg = (
+        f"Cannot convert '{raw_value}' ({type(raw_value)}) into one of: {', '.join(str(v) for v in allowed_values)}"
+    )
+    logger.debug(f"Raising error: {error_msg}")
+    raise DecodingError(path, error_msg)
