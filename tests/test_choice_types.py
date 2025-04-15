@@ -49,8 +49,8 @@ def test_registry_decode_subtype_without_type():
 
 
 def test_choice_registry_encode():
-    assert draccus.encode(Adult("bob", 10)) == {"type": "adult", "name": "bob", "age": 10}
-    assert draccus.encode(Child("bob", "truck")) == {"type": "child", "name": "bob", "favorite_toy": "truck"}
+    assert draccus.encode(Adult("bob", 10), Person) == {"type": "adult", "name": "bob", "age": 10}
+    assert draccus.encode(Child("bob", "truck"), Person) == {"type": "child", "name": "bob", "favorite_toy": "truck"}
 
 
 def test_is_choicetype():
