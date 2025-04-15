@@ -23,7 +23,9 @@ def parse_string(s: str) -> dict:
     return parser.parse_string(s)
 
 
-def load_config(stream: Union[str, TextIO], *, file: Optional[Union[str, Path]] = None) -> dict:
+def load_config(
+    stream: Union[str, TextIO, os.PathLike], *, file: Optional[Union[str, Path, os.PathLike]] = None
+) -> dict:
     """
     Load configuration from a stream (file object or string) or file path.
 
@@ -49,8 +51,12 @@ def load_config(stream: Union[str, TextIO], *, file: Optional[Union[str, Path]] 
         elif fpath.endswith(".yaml") or fpath.endswith(".yml"):
             with config_type("yaml"):
                 return load_config(stream)
+
     parser = Options.get_config_type().value
-    return parser.load_config(stream)
+    try:
+        return parser.load_config(stream)
+    except Exception as e:  # pylint: disable=broad-except
+        raise utils.ParsingError(f"Failed to load config from {stream}") from e
 
 
 def save_config(d: dict, stream=None, **kwargs) -> Optional[str]:
@@ -70,7 +76,7 @@ def save_config(d: dict, stream=None, **kwargs) -> Optional[str]:
     return parser.save_config(d, stream, **kwargs)
 
 
-def load(t: Type[Dataclass], stream: Union[str, TextIO]) -> Dataclass:
+def load(t: Type[Dataclass], stream: Union[str, TextIO, os.PathLike]) -> Dataclass:
     """
     Load a config from a file path, file object, or string.
 
@@ -85,13 +91,14 @@ def load(t: Type[Dataclass], stream: Union[str, TextIO]) -> Dataclass:
         For string content, consider using loads() instead for clarity.
         This method maintains backwards compatibility with previous versions.
     """
-    if isinstance(stream, str) and os.path.exists(stream):
+    if isinstance(stream, (str, os.PathLike)) and os.path.exists(stream):
         # If stream is a file path, open it
         with open(stream, "r") as f:
             dictionary = load_config(f, file=stream)
     else:
         # If stream is a file object or string content
         dictionary = load_config(stream)
+
     return decode(t, dictionary)
 
 

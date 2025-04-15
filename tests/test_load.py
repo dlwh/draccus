@@ -18,7 +18,7 @@ def test_load_from_file(tmp_path):
     config_path.write_text("a: 2\nb: hello\nc: 1.23")
 
     # Test with file path
-    cfg = draccus.load(TestConfig, str(config_path))
+    cfg = draccus.load(TestConfig, config_path)
     assert cfg.a == 2
     assert cfg.b == "hello"
     assert cfg.c == 1.23
