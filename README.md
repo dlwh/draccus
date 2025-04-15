@@ -57,6 +57,9 @@ class TrainConfig:
 @draccus.wrap()
 def main(cfg: TrainConfig):
     print(f"Training {cfg.exp_name} with {cfg.workers} workers...")
+
+if __name__ == "__main__":
+    main()
 ```
 
 The arguments can then be specified using command-line arguments, a `yaml` configuration file, or both.
