@@ -2,6 +2,7 @@ import argparse
 import dataclasses
 import inspect
 from argparse import _ActionsContainer
+from functools import cached_property
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
@@ -310,7 +311,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
     def is_union(self) -> bool:
         return utils.is_union(self.field.type)
 
-    @property
+    @cached_property
     def is_literal(self) -> bool:
         """Returns True if the field's type is a Literal type."""
         return utils.is_literal(self.type)

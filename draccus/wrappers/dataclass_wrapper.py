@@ -1,5 +1,6 @@
 import argparse
 import dataclasses
+import time
 import typing
 from logging import getLogger
 from typing import Dict, List, Optional, Type, Union, cast
@@ -63,12 +64,16 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
         group = parser.add_argument_group(title=self.title, description=self.description)
 
         for child in self._children:
+            time_in = time.time()
             if isinstance(child, AggregateWrapper):
                 # Child name will always be populated as this is done via our code inside `_wrap_field`
                 parser.add_argument("--" + child.name, type=str, required=False, help="Config file for " + child.name)
                 child.register_actions(parser)
             elif isinstance(child, FieldWrapper):
                 child.add_action(group)
+            time_out = time.time()
+            if time_out - time_in > 0.01:
+                print(f"Slow registration of {child.name} took {time_out - time_in:.2f}s")
 
     @property
     def name(self) -> str:
