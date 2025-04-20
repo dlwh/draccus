@@ -188,7 +188,7 @@ def is_union(t: Type) -> bool:
     if getattr(t, "__origin__", "") == Union:
         return True
 
-    elif sys.version_info >= (3, 10):
+    elif sys.version_info >= (3, 9):
         return tpi.is_union_type(t)
 
     return False

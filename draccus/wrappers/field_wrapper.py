@@ -306,11 +306,11 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
 
     @property
     def is_optional(self) -> bool:
-        return utils.is_optional(self.field.type)
+        return utils.is_optional(self.type)
 
     @property
     def is_union(self) -> bool:
-        return utils.is_union(self.field.type)
+        return utils.is_union(self.type)
 
     @cached_property
     def is_literal(self) -> bool:

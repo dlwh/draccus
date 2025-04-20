@@ -5,6 +5,7 @@ from typing import Dict, Union
 
 import pytest
 
+from draccus import utils
 from draccus.utils import DecodingError
 
 from .testutils import *
@@ -26,6 +27,8 @@ def test_union_type():
 
 @pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
 def test_union_types_39():
+    assert utils.is_union(float | str)
+
     @dataclass
     class Foo(TestSetup):
         x: float | str = 0
