@@ -1,6 +1,5 @@
 import argparse
 import dataclasses
-import time
 from dataclasses import Field
 from functools import cached_property
 from typing import Dict, Optional, Sequence, Type
@@ -79,11 +78,8 @@ class ChoiceWrapper(AggregateWrapper[Type[ChoiceType]]):
         for child in self._children.values():
             from .dataclass_wrapper import DataclassWrapper
 
-            time_in = time.time()
             assert isinstance(child, DataclassWrapper)
             child.register_actions(parser)
-            time_out = time.time()
-            print(f"Time taken to register actions for {child.title}: {time_out - time_in}")
 
     @cached_property
     def _children(self) -> Dict[str, Wrapper]:

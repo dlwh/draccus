@@ -111,7 +111,8 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
             _arg_options["help"] = " "
 
         tpe = self.type
-        tpe = utils.canonicalize_union(tpe)
+        if self.is_union:
+            tpe = utils.canonicalize_union(tpe)
 
         if self.is_literal:
             args = utils.get_type_arguments(tpe)
@@ -325,7 +326,6 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
         return self._parent
 
     def add_action(self, parser: _ActionsContainer) -> None:
-        logger.debug(f"Arg options for field '{self.name}': {self.arg_options}")
         parser.add_argument(*self.option_strings, **self.arg_options)
 
 

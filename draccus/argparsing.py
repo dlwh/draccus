@@ -6,7 +6,6 @@ import dataclasses
 import inspect
 import os
 import sys
-import time
 import warnings
 from argparse import HelpFormatter, Namespace
 from collections import defaultdict
@@ -71,10 +70,7 @@ class ArgumentParser(Generic[T]):
             type=str,
             help="Path for a config file to parse with draccus",
         )
-        time_in = time.time()
         self._set_dataclass(config_class)  # type: ignore
-        time_out = time.time()
-        print(f"Time taken to set dataclass: {time_out - time_in}")
 
     def _set_dataclass(
         self,
@@ -88,10 +84,7 @@ class ArgumentParser(Generic[T]):
             dataclass = type(dataclass)
 
         new_wrapper = dataclass_wrapper_class(dataclass, default=default, preferred_help=self.preferred_help)
-        time_in = time.time()
         new_wrapper.register_actions(parser=self.parser)
-        time_out = time.time()
-        print(f"Time taken to register actions: {time_out - time_in}")
 
     def _assert_preferred_help(self):
         """Checks that `self.prefer_help` is valid."""
