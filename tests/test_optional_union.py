@@ -8,13 +8,13 @@ from .testutils import TestSetup
 def test_optional_union():
     @dataclass
     class Config(TestSetup):
-        path: Optional[Union[Path, str]] = None
+        path: Union[Path, str, None] = None
+
+    config = Config.setup("--path bob")
+    assert config.path == Path("bob")
 
     config = Config.setup("")
     assert config.path is None
 
     config = Config.setup("--path null")
     assert config.path is None
-
-    config = Config.setup("--path bob")
-    assert config.path == Path("bob")

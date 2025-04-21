@@ -1,7 +1,6 @@
 import argparse
 import dataclasses
 import inspect
-from argparse import _ActionsContainer
 from functools import cached_property
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
@@ -325,7 +324,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
     def parent(self):
         return self._parent
 
-    def add_action(self, parser: _ActionsContainer) -> None:
+    def add_action(self, parser) -> None:
         parser.add_argument(*self.option_strings, **self.arg_options)
 
 

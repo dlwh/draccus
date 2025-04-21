@@ -373,18 +373,41 @@ def has_generic_arg(args):
     return False
 
 
-def is_choice_type(cls) -> bool:
-    from draccus.choice_types import ChoiceType
+def is_choice_type(cls: Any) -> bool:
+    """
+    Returns True if
+    1) cls is a ChoiceRegistry or PluginRegistry, or a *direct* subclass of one of those
+    OR
+    2) cls structurally matches the ChoiceType protocol, but none of its parents do
+    """
+    from draccus.choice_types import ChoiceRegistry, ChoiceType, PluginRegistry
 
-    if inspect.isclass(cls):
+    CHOICE_BASES = (ChoiceRegistry, PluginRegistry, ChoiceType)
+
+    # Skip if not a proper class
+    if not isinstance(cls, type):
+        return False
+
+    # 1. does not structurally match protocol --> False
+    try:
+        if not issubclass(cls, ChoiceType):
+            return False
+    except TypeError:
+        return False  # Generic alias like list[int]
+
+    # 2. Direct subclass of known base registry --> True
+    if any(base in cls.__bases__ for base in CHOICE_BASES):
+        return True
+
+    # 3. none of its parents match structurally --> True
+    for base in cls.__bases__:
         try:
-            # builtins are technically "isclass" but they raise an exception with issubclass
-            # (because Python is stupid)
-            return issubclass(cls, ChoiceType)
-        except Exception:
-            pass
+            if issubclass(base, ChoiceType):
+                return False
+        except TypeError:
+            continue
 
-    return False
+    return True
 
 
 class StringHolderEnum(type):
