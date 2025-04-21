@@ -51,7 +51,6 @@ def test_subclasses_with_same_base_class_no_args():
 def test_subclasses_with_same_base_class_with_args():
     import logging
 
-    logging.basicConfig(level=logging.DEBUG)
     ext = Inheritance.setup("--ext_b.a 10 --ext_c.a 30")
     print(ext.get_help_text())
     assert ext.ext_b.a == 10

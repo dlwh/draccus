@@ -1,7 +1,7 @@
 import argparse
 import dataclasses
 import inspect
-from argparse import _ActionsContainer
+from functools import cached_property
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
@@ -110,7 +110,8 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
             _arg_options["help"] = " "
 
         tpe = self.type
-        tpe = utils.canonicalize_union(tpe)
+        if self.is_union:
+            tpe = utils.canonicalize_union(tpe)
 
         if self.is_literal:
             args = utils.get_type_arguments(tpe)
@@ -304,13 +305,13 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
 
     @property
     def is_optional(self) -> bool:
-        return utils.is_optional(self.field.type)
+        return utils.is_optional(self.type)
 
     @property
     def is_union(self) -> bool:
-        return utils.is_union(self.field.type)
+        return utils.is_union(self.type)
 
-    @property
+    @cached_property
     def is_literal(self) -> bool:
         """Returns True if the field's type is a Literal type."""
         return utils.is_literal(self.type)
@@ -323,8 +324,7 @@ class FieldWrapper(Wrapper[dataclasses.Field]):
     def parent(self):
         return self._parent
 
-    def add_action(self, parser: _ActionsContainer) -> None:
-        logger.debug(f"Arg options for field '{self.name}': {self.arg_options}")
+    def add_action(self, parser) -> None:
         parser.add_argument(*self.option_strings, **self.arg_options)
 
 

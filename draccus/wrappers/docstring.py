@@ -2,13 +2,17 @@
 @author: Fabrice Normandin
 """
 import inspect
+import re
 from dataclasses import dataclass
+from functools import lru_cache
 from logging import getLogger
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Optional, Type, Union
 
 from draccus.utils import StringHolderEnum
 
 logger = getLogger(__name__)
+
+# TODO(dlwh): this code sucks so much
 
 
 @dataclass
@@ -45,6 +49,19 @@ def get_preferred_help_text(doc: AttributeDocString, preferred_help: str = HelpO
     return None
 
 
+# at least we can lru this
+@lru_cache(maxsize=100)
+def _get_class_source(some_dataclass: Type) -> Union[list[str], None]:
+    try:
+        source = inspect.getsource(some_dataclass)
+        code_lines: List[str] = source.splitlines()
+        return code_lines
+    except (TypeError, OSError) as e:
+        logger.debug(f"Couldn't find source: {e}")
+        return None
+
+
+# @lru_cache(maxsize=100)
 def get_attribute_docstring(some_dataclass: Type, field_name: str) -> AttributeDocString:
     """Returns the docstrings of a dataclass field.
     NOTE: a docstring can either be:
@@ -59,13 +76,11 @@ def get_attribute_docstring(some_dataclass: Type, field_name: str) -> AttributeD
     Returns:
         AttributeDocString -- an object holding the three possible comments
     """
-    try:
-        source = inspect.getsource(some_dataclass)
-    except (TypeError, OSError) as e:
-        logger.debug(f"Couldn't find the attribute docstring: {e}")
+
+    code_lines = _get_class_source(some_dataclass)  # type: ignore
+    if code_lines is None:
         return AttributeDocString()
 
-    code_lines: List[str] = source.splitlines()
     # the first line is the class definition, we skip it.
     start_line_index = 1
     # starting at the second line, there might be the docstring for the class.
@@ -92,16 +107,39 @@ def get_attribute_docstring(some_dataclass: Type, field_name: str) -> AttributeD
     mro = inspect.getmro(some_dataclass)
     if len(mro) == 1:
         raise RuntimeWarning(f"Couldn't find the given attribute name {field_name}' within the given class.")
-    base_class = mro[1]
-    try:
-        return get_attribute_docstring(base_class, field_name)
-    except OSError as e:
-        logger.warning(UserWarning(f"Couldn't find the docstring: {e}"))
-        return AttributeDocString()
+    for base_class in mro[1:]:
+        try:
+            return get_attribute_docstring(base_class, field_name)
+        except OSError:
+            continue
+
+    logger.debug(
+        f"Couldn't find the attribute docstring for {field_name} in {some_dataclass} or any of its base classes."
+    )
+    return AttributeDocString()
+
+
+DATACLASS_ATTR_RE = re.compile(
+    r"""
+    ^\s*                       # optional leading whitespace
+    (\w+)                      # attribute name
+    \s*:\s*                    # colon with optional whitespace
+    ([\w\[\], .|]+)            # type annotation (very loose match)
+    (\s*=\s*.+)?               # optional default value
+    \s*$                      # optional trailing whitespace
+""",
+    re.VERBOSE,
+)
+
+
+def is_dataclass_attr_line(line: str) -> bool:
+    if line.strip().startswith("def "):
+        return False
+    return bool(DATACLASS_ATTR_RE.match(line))
 
 
 def _contains_attribute_definition(line_str: str) -> bool:
-    """Returns whether or not a line contains a an dataclass field definition.
+    """Returns whether or not a line contains a dataclass field definition.
 
     Arguments:
         line_str {str} -- the line content
@@ -109,17 +147,19 @@ def _contains_attribute_definition(line_str: str) -> bool:
     Returns:
         bool -- True if there is an attribute definition in the line.
     """
-    parts = line_str.split("#", maxsplit=1)
-    before_comment = parts[0].strip()
-
-    before_first_equal = before_comment.split("=", maxsplit=1)[0]
-    parts = before_first_equal.split(":")
-    if len(parts) != 2:
-        # For now, I don't think it's possible to have a type annotation contain :
-        return False
-    attr_name = parts[0]
-    attr_type = parts[1]
-    return not attr_name.isspace() and not attr_type.isspace()
+    line_str = line_str.split("#", 1)[0].strip()
+    return is_dataclass_attr_line(line_str)
+    # parts = line_str.split("#", maxsplit=1)
+    # before_comment = parts[0].strip()
+    #
+    # before_first_equal = before_comment.split("=", maxsplit=1)[0]
+    # parts = before_first_equal.split(":")
+    # if len(parts) != 2:
+    #     # For now, I don't think it's possible to have a type annotation contain :
+    #     return False
+    # attr_name = parts[0]
+    # attr_type = parts[1]
+    # return not attr_name.isspace() and (attr_type.strip() != "")
 
 
 def _is_empty(line_str: str) -> bool:

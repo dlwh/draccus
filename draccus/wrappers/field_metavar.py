@@ -40,6 +40,7 @@ def get_metavar(t: Type) -> Optional[str]:
     # TODO: Maybe we can create the name for each returned call, a bit like how
     # we dynamically create the parsing function itself?
     new_name: Optional[str] = getattr(t, "__name__", None)
+    # new_name = str(t)
 
     optional = is_optional(t)
 
