@@ -78,8 +78,13 @@ def encode(obj: Any, declared_type: Optional[Type] = None) -> Any:
             # find the first type that matches the object's type
             for t in typing.get_args(declared_type):
                 # we can't use subscripted generic types here
-                # strip type args
-                if isinstance(obj, typing.get_origin(t) or t):
+                if typing.get_origin(t) is typing.Literal:
+                    for arg in typing.get_args(t):
+                        if arg == obj:
+                            underlying_type = t
+                            declared_type = t
+                            break
+                elif isinstance(obj, typing.get_origin(t) or t):
                     underlying_type = typing.get_origin(t) or t
                     declared_type = t
                     break

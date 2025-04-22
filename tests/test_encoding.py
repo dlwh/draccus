@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Dict, Generic, Tuple, Union
+from typing import Dict, Generic, Literal, Tuple, Union
 
 from draccus import ChoiceRegistry, encode
 
@@ -177,3 +177,15 @@ def test_encode_generic_union_member():
 
     assert encode(Foo(x=[1, 2, 3])) == {"x": [1, 2, 3]}
     assert encode(Foo(x="hello")) == {"x": "hello"}
+
+
+def test_encode_literal_union_member():
+    @dataclass
+    class Foo:
+        x: Union[Literal["a", "b"], int]
+
+        def __post_init__(self):
+            assert isinstance(self.x, int) or self.x in ["a", "b"]
+
+    assert encode(Foo(x=1)) == {"x": 1}
+    assert encode(Foo(x="a")) == {"x": "a"}
