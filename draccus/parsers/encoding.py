@@ -19,6 +19,7 @@ from os import PathLike
 from pathlib import PosixPath, WindowsPath
 from typing import Any, Dict, Hashable, List, Optional, Tuple, Type, Union
 
+from draccus import utils
 from draccus.choice_types import CHOICE_TYPE_KEY
 from draccus.parsers.registry_utils import RegistryFunc, withregistry
 from draccus.utils import is_choice_type
@@ -75,7 +76,7 @@ def encode(obj: Any, declared_type: Optional[Type] = None) -> Any:
     if declared_type is not None:
         underlying_type = typing.get_origin(declared_type) or declared_type
         # we have to handle unions specially for declared types:
-        if underlying_type is Union:
+        if utils.is_union(declared_type):
             # find the first type that matches the object's type
             for t in typing.get_args(declared_type):
                 # we can't use subscripted generic types here

@@ -217,3 +217,23 @@ def test_encode_enum_str():
 
     # test roundtrip
     assert decode(ActivationFunctionEnum, "relu") == ActivationFunctionEnum.relu
+
+
+def test_encode_dataclass_type_parameters_error():
+    import pytest
+    from dataclasses import dataclass
+    from typing import Union
+    from draccus.parsers.encoding import encode_dataclass
+
+    @dataclass
+    class ListHolder:
+        x: list[int] | str
+
+    encode_dataclass(ListHolder([1]), declared_type=ListHolder)
+
+
+    @dataclass
+    class ListHolder2:
+        x: list[int] | str
+
+    encode(ListHolder([1]), declared_type=ListHolder | ListHolder2)
