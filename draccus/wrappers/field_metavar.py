@@ -1,6 +1,5 @@
-import functools
 from logging import getLogger
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
 from draccus.utils import get_type_arguments, is_optional, is_tuple, is_union
 
@@ -15,18 +14,7 @@ _new_metavars: Dict[Type, Optional[str]] = {
 }
 
 
-def log_results(fn: Callable[[Type], T]) -> Callable[[Type], T]:
-    @functools.wraps(fn)
-    def _wrapped(t: Type) -> T:
-        result = fn(t)
-        logger.debug(f"Metavar for type {t}: {result}")
-        return result
-
-    return _wrapped
-
-
-@log_results
-def get_metavar(t: Type) -> Optional[str]:
+def get_metavar(t: Type, top_level: bool = True) -> Optional[str]:
     """Gets the metavar to be used for that type in help strings.
 
     This is crucial when using a `weird` auto-generated parsing functions for
@@ -40,7 +28,6 @@ def get_metavar(t: Type) -> Optional[str]:
     # TODO: Maybe we can create the name for each returned call, a bit like how
     # we dynamically create the parsing function itself?
     new_name: Optional[str] = getattr(t, "__name__", None)
-    # new_name = str(t)
 
     optional = is_optional(t)
 
@@ -52,10 +39,14 @@ def get_metavar(t: Type) -> Optional[str]:
         metavars: List[str] = []
         for type_arg in args:
             if type_arg is type(None):
-                continue
-            metavars.append(get_metavar(type_arg) or "<unknown>")
+                if top_level:
+                    continue
+                else:
+                    metavars.append("None")
+            else:
+                metavars.append(get_metavar(type_arg) or "<unknown>")
         metavar = "|".join(map(str, metavars))
-        if optional:
+        if optional and top_level:
             return f"[{metavar}]"
         return metavar
 
@@ -72,5 +63,16 @@ def get_metavar(t: Type) -> Optional[str]:
             else:
                 metavars.append(get_metavar(arg) or "<unknown>")
         return " ".join(metavars)
+
+    else:
+        try:
+            args = get_type_arguments(t)
+            if args:
+                # we want the name without type args
+                # List[str]'s __name__ is List[str], but we want List
+                new_name = t.__origin__.__name__
+                return f"{new_name}[{','.join(get_metavar(arg, top_level=False) or str(arg) for arg in args)}]"
+        except Exception:
+            pass
 
     return new_name

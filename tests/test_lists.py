@@ -1,6 +1,6 @@
 import sys
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple, Type
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 import pytest
 
@@ -154,3 +154,39 @@ b:
     c = OptionalOuter.setup(config=yaml)
 
     assert c.b == Outer(a=[Inner(a=1), Inner(a=2)])
+
+
+def test_list_help_text():
+    @dataclass
+    class Container(TestSetup):
+        a: List[int] = field(default_factory=list)
+
+    help_text = Container.get_help_text()
+    assert "a" in help_text
+
+    assert "list[int]" in help_text
+
+    @dataclass
+    class Container(TestSetup):
+        a: List[Union[int, str]] = field(default_factory=list)
+
+    help_text = Container.get_help_text()
+    assert "list[int|str]" in help_text
+
+    @dataclass
+    class Foo:
+        a: List[int] = field(default_factory=list)
+
+    @dataclass
+    class Container(TestSetup):
+        a: List[Foo] = field(default_factory=list)
+
+    help_text = Container.get_help_text()
+    assert "list[Foo]" in help_text
+
+    @dataclass
+    class Container(TestSetup):
+        a: List[Optional[Union[int, Foo]]] = field(default_factory=list)
+
+    help_text = Container.get_help_text()
+    assert "list[int|Foo|None]" in help_text
