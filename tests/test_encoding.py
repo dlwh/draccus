@@ -1,9 +1,8 @@
 import enum
+import sys
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Dict, Generic, Literal, Tuple, Union
-
-import pytest
 
 from draccus import ChoiceRegistry, decode, encode
 
