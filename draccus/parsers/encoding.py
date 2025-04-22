@@ -77,8 +77,11 @@ def encode(obj: Any, declared_type: Optional[Type] = None) -> Any:
         if underlying_type is Union:
             # find the first type that matches the object's type
             for t in typing.get_args(declared_type):
-                if isinstance(obj, t):
-                    underlying_type = t
+                # we can't use subscripted generic types here
+                # strip type args
+                if isinstance(obj, typing.get_origin(t) or t):
+                    underlying_type = typing.get_origin(t) or t
+                    declared_type = t
                     break
     else:
         underlying_type = type(obj)

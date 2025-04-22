@@ -165,3 +165,15 @@ def test_encode_choice_type_in_generic():
     home = Home([dog, cat])
     expected = {"animals": [{"name": "Fido", "age": 3}, {"name": "Whiskers", "lives": 9}]}
     assert encode(home) == expected
+
+
+def test_encode_generic_union_member():
+    @dataclass
+    class Foo:
+        x: Union[List[int], str]
+
+        def __post_init__(self):
+            assert isinstance(self.x, list) or isinstance(self.x, str)
+
+    assert encode(Foo(x=[1, 2, 3])) == {"x": [1, 2, 3]}
+    assert encode(Foo(x="hello")) == {"x": "hello"}
