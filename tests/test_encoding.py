@@ -189,3 +189,9 @@ def test_encode_literal_union_member():
 
     assert encode(Foo(x=1)) == {"x": 1}
     assert encode(Foo(x="a")) == {"x": "a"}
+
+
+def test_encode_path():
+    from pathlib import Path
+
+    assert encode(Path("/tmp")) == "/tmp"

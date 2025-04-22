@@ -16,6 +16,7 @@ from dataclasses import fields, is_dataclass
 from enum import Enum
 from logging import getLogger
 from os import PathLike
+from pathlib import PosixPath, WindowsPath
 from typing import Any, Dict, Hashable, List, Optional, Tuple, Type, Union
 
 from draccus.choice_types import CHOICE_TYPE_KEY
@@ -245,5 +246,7 @@ def encode_set(obj: set, declared_type: Optional[Type] = None) -> list:
 
 
 encode.register(PathLike, lambda x, _=None: x.__fspath__())
+encode.register(PosixPath, lambda x, _=None: x.__fspath__())
+encode.register(WindowsPath, lambda x, _=None: x.__fspath__())
 
 encode.register(Namespace, lambda x, _=None: encode(vars(x)))
