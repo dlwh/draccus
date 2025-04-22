@@ -182,7 +182,7 @@ def test_list_help_text():
         a: List[Foo] = field(default_factory=list)
 
     help_text = Container.get_help_text()
-    print(help_text)
+    logging.debug(help_text)
     assert "list[Foo]" in help_text
 
     @dataclass
