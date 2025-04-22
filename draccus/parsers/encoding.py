@@ -16,7 +16,6 @@ from dataclasses import fields, is_dataclass
 from enum import Enum
 from logging import getLogger
 from os import PathLike
-from pathlib import PosixPath, WindowsPath
 from typing import Any, Dict, Hashable, List, Optional, Tuple, Type, Union
 
 from draccus import utils
@@ -129,15 +128,14 @@ def encode_dataclass(obj: Any, declared_type: Optional[Type] = None):
     d: Dict[str, Any] = dict()
 
     # Handle type parameters if declared_type is provided
-    type_map = {}
+    type_map: Dict = {}
     if declared_type is not None:
-        origin = typing.get_origin(declared_type)
-        if origin is not None and hasattr(origin, "__parameters__"):
+        # Build a type_map only when declared_type's origin or itself defines real type parameters
+        origin = typing.get_origin(declared_type) or declared_type
+        type_vars = getattr(origin, "__parameters__", ()) or ()
+        if isinstance(type_vars, tuple) and type_vars:
             type_args = typing.get_args(declared_type)
-            type_vars = origin.__parameters__
             type_map = dict(zip(type_vars, type_args))
-        else:
-            origin = declared_type
 
     for field in fields(obj):
         value = getattr(obj, field.name)
@@ -247,8 +245,6 @@ def encode_set(obj: set, declared_type: Optional[Type] = None) -> list:
     return [encode(x, item_type) for x in obj]
 
 
-encode.register(PathLike, lambda x, _=None: x.__fspath__())
-encode.register(PosixPath, lambda x, _=None: x.__fspath__())
-encode.register(WindowsPath, lambda x, _=None: x.__fspath__())
+encode.register(PathLike, lambda x, _=None: x.__fspath__(), include_subclasses=True)
 
 encode.register(Namespace, lambda x, _=None: encode(vars(x)))

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Dict, Generic, Literal, Tuple, Union
 
+import pytest
+
 from draccus import ChoiceRegistry, decode, encode
 
 from .testutils import *
@@ -219,10 +221,10 @@ def test_encode_enum_str():
     assert decode(ActivationFunctionEnum, "relu") == ActivationFunctionEnum.relu
 
 
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
 def test_encode_dataclass_type_parameters_error():
-    import pytest
     from dataclasses import dataclass
-    from typing import Union
+
     from draccus.parsers.encoding import encode_dataclass
 
     @dataclass
@@ -230,7 +232,6 @@ def test_encode_dataclass_type_parameters_error():
         x: list[int] | str
 
     encode_dataclass(ListHolder([1]), declared_type=ListHolder)
-
 
     @dataclass
     class ListHolder2:
