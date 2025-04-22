@@ -1,8 +1,9 @@
+import enum
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Dict, Generic, Literal, Tuple, Union
 
-from draccus import ChoiceRegistry, encode
+from draccus import ChoiceRegistry, decode, encode
 
 from .testutils import *
 
@@ -195,3 +196,24 @@ def test_encode_path():
     from pathlib import Path
 
     assert encode(Path("/tmp")) == "/tmp"
+
+
+class ActivationFunctionEnum(str, enum.Enum):
+    relu = "relu"
+    silu = "silu"
+    swish = "swish"
+    gelu = "gelu"
+    gelu_new = "gelu_new"
+    quick_gelu = "quick_gelu"
+    tanh = "tanh"
+
+
+def test_encode_enum_str():
+
+    assert encode(ActivationFunctionEnum.relu) == "relu"
+    assert encode(ActivationFunctionEnum.silu) == "silu"
+    assert encode(ActivationFunctionEnum.swish) == "swish"
+    assert encode(ActivationFunctionEnum.gelu) == "gelu"
+
+    # test roundtrip
+    assert decode(ActivationFunctionEnum, "relu") == ActivationFunctionEnum.relu
