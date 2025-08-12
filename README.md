@@ -85,7 +85,7 @@ model:
 
 (This is a difference from Pyrallis.)
 
-We support including config files from other config files via [pyyaml-include](https://github.com/tanbro/pyyaml-include).
+We support including config files from other config files using the `!include` tag.
 This is useful for splitting up your config into multiple files, or for including a base config file in your config.
 
 It works like this:
@@ -122,13 +122,13 @@ num_heads: 48
 # train_config.yaml
 exp_name: my_yaml_exp
 workers: 42
-model: 
+model:
   type: bert
   num_layers: 24
   num_heads: 24
 ```
 
-Using `python train_model.py --config_path=train_config.yaml --model="include model_config.yaml"` 
+Using `python train_model.py --config_path=train_config.yaml --model="include model_config.yaml"`
 will give `cfg.model.type = 'bert_cli'`
 
 ### Including Configs at Top Level
