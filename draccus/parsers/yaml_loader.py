@@ -1,8 +1,15 @@
+import os
+
 import yaml  # type: ignore
 import yaml.representer  # type: ignore
-import yamlinclude
 from yaml import MappingNode
 from yaml.constructor import ConstructorError  # type: ignore
+
+
+def include_constructor(loader, node):
+    filename = os.path.normpath(os.path.join(os.path.dirname(loader.stream.name), node.value))
+    with open(filename, "r") as f:
+        return yaml.load(f, loader.__class__)
 
 
 class ConstructorWithGoodInclusion(yaml.constructor.SafeConstructor, yaml.representer.SafeRepresenter):
@@ -10,7 +17,7 @@ class ConstructorWithGoodInclusion(yaml.constructor.SafeConstructor, yaml.repres
         yaml.constructor.SafeConstructor.__init__(self)
         yaml.representer.SafeRepresenter.__init__(self)
 
-    # this is a hack to get around the fact that yamlinclude doesn't work with the merge key <<
+    # this is a hack to get around the fact that inclusion doesn't work with the merge key <<
     def flatten_mapping(self, node):
         merge = []
         index = 0
@@ -19,7 +26,7 @@ class ConstructorWithGoodInclusion(yaml.constructor.SafeConstructor, yaml.repres
             if key_node.tag == "tag:yaml.org,2002:merge":
                 del node.value[index]
                 # this is the difference from the original method
-                if value_node.tag == yamlinclude.YamlIncludeConstructor.DEFAULT_TAG_NAME:
+                if value_node.tag == "!include":
                     value = self.construct_object(value_node)
                     value = self.represent_data(value)
                     if isinstance(value, MappingNode):
@@ -77,5 +84,5 @@ class SafeLoaderWithInclusion(yaml.SafeLoader, ConstructorWithGoodInclusion):
         ConstructorWithGoodInclusion.__init__(self)
 
 
-yamlinclude.YamlIncludeConstructor.add_to_loader_class(FullLoaderWithInclusion, relative=True)
-yamlinclude.YamlIncludeConstructor.add_to_loader_class(SafeLoaderWithInclusion, relative=True)
+FullLoaderWithInclusion.add_constructor("!include", include_constructor)
+SafeLoaderWithInclusion.add_constructor("!include", include_constructor)
