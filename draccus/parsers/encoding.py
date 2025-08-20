@@ -204,7 +204,10 @@ def encode_enum(obj: Enum, declared_type: Optional[Type] = None) -> str:
 
 
 for t in [str, float, int, bool, bytes]:
-    encode.register(t, lambda x, _=None: x)
+    def cvt(x, _=None, t=t):
+        return t(x)
+    # subclass enums
+    encode.register(t, cvt, include_subclasses=True)
 
 
 @encode.register(list)
