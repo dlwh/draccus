@@ -1,8 +1,10 @@
+import enum
+import sys
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Dict, Generic, Tuple, Union
+from typing import Dict, Generic, Literal, Tuple, Union
 
-from draccus import ChoiceRegistry, encode
+from draccus import ChoiceRegistry, decode, encode
 
 from .testutils import *
 
@@ -177,3 +179,61 @@ def test_encode_generic_union_member():
 
     assert encode(Foo(x=[1, 2, 3])) == {"x": [1, 2, 3]}
     assert encode(Foo(x="hello")) == {"x": "hello"}
+
+
+def test_encode_literal_union_member():
+    @dataclass
+    class Foo:
+        x: Union[Literal["a", "b"], int]
+
+        def __post_init__(self):
+            assert isinstance(self.x, int) or self.x in ["a", "b"]
+
+    assert encode(Foo(x=1)) == {"x": 1}
+    assert encode(Foo(x="a")) == {"x": "a"}
+
+
+def test_encode_path():
+    from pathlib import Path
+
+    assert encode(Path("/tmp")) == "/tmp"
+
+
+class ActivationFunctionEnum(str, enum.Enum):
+    relu = "relu"
+    silu = "silu"
+    swish = "swish"
+    gelu = "gelu"
+    gelu_new = "gelu_new"
+    quick_gelu = "quick_gelu"
+    tanh = "tanh"
+
+
+def test_encode_enum_str():
+
+    assert encode(ActivationFunctionEnum.relu) == "relu"
+    assert encode(ActivationFunctionEnum.silu) == "silu"
+    assert encode(ActivationFunctionEnum.swish) == "swish"
+    assert encode(ActivationFunctionEnum.gelu) == "gelu"
+
+    # test roundtrip
+    assert decode(ActivationFunctionEnum, "relu") == ActivationFunctionEnum.relu
+
+
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
+def test_encode_dataclass_type_parameters_error():
+    from dataclasses import dataclass
+
+    from draccus.parsers.encoding import encode_dataclass
+
+    @dataclass
+    class ListHolder:
+        x: list[int] | str
+
+    encode_dataclass(ListHolder([1]), declared_type=ListHolder)
+
+    @dataclass
+    class ListHolder2:
+        x: list[int] | str
+
+    encode(ListHolder([1]), declared_type=ListHolder | ListHolder2)
