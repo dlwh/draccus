@@ -336,7 +336,13 @@ def decode_enum(cls: Type[T], raw_value: Any, path) -> T:
     except ValueError:
         try:
             return cls[raw_value]  # type: ignore
-        except ValueError as e:
+        except (ValueError, KeyError) as e:
+            if isinstance(raw_value, str):
+                try:
+                    split = raw_value.split(".", 1)
+                    return cls[split[-1]]  # type: ignore
+                except AttributeError:
+                    pass
             raise DecodingError(path, f"Couldn't parse '{raw_value}' into an enum of type {cls}") from e
 
 

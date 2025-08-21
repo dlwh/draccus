@@ -2,24 +2,43 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import List
 
-from draccus import ParsingError
+from draccus import ParsingError, encode, decode
 
 from .testutils import TestSetup, raises
 
 
-class Color(Enum):
+class Color(str, Enum):
     blue: str = auto()  # type: ignore
     red: str = auto()  # type: ignore
     green: str = auto()  # type: ignore
     orange: str = auto()  # type: ignore
 
 
-class BigColor(Enum):
+class BigColor(str, Enum):
     BLUE: str = "blue"
     RED: str = "red"
     GREEN: str = "green"
     TRICKY: str = "orange"
 
+class Option(int, Enum):
+    ONE: int = 1
+    TWO: int = 2
+    THREE: int = 3
+
+def test_encode_decode():
+    @dataclass
+    class Something(TestSetup):
+        favorite_color: Color = field(default=Color.green)
+        favorite_big_color: BigColor = field(default=BigColor.GREEN)
+        option: Option = field(default=Option.ONE)
+        colors: List[Color] = field(default_factory=[Color.green].copy)
+
+    s = Something.setup("")
+    s_decoded = decode(Something, encode(s))
+    assert s_decoded.favorite_color == s.favorite_color
+    assert s_decoded.favorite_big_color == s.favorite_big_color
+    assert s_decoded.option == s.option
+    assert s_decoded.colors == s.colors
 
 def test_passing_enum_to_choice():
     @dataclass

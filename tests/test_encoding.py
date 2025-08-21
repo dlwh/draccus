@@ -11,6 +11,9 @@ class Color(Enum):
     blue = auto()
     red = auto()
 
+class StringEnum(str, Enum):
+    STRING_1 = "string_1"
+    STRING_2 = "string_2"
 
 def test_encode_basic_types():
     # Test basic types
@@ -24,7 +27,9 @@ def test_encode_basic_types():
 def test_encode_enum():
     assert encode(Color.blue) == "blue"
     assert encode(Color.red) == "red"
-
+    assert encode(StringEnum.STRING_1) == "StringEnum.STRING_1"
+    assert encode(StringEnum.STRING_2) == "StringEnum.STRING_2"
+    
 
 def test_encode_list():
     # Test list with and without type parameters
