@@ -18,6 +18,7 @@ from logging import getLogger
 from os import PathLike
 from typing import Any, Dict, Hashable, List, Optional, Tuple, Type, Union
 
+from draccus import utils
 from draccus.choice_types import CHOICE_TYPE_KEY
 from draccus.parsers.registry_utils import RegistryFunc, withregistry
 from draccus.utils import is_choice_type
@@ -74,12 +75,17 @@ def encode(obj: Any, declared_type: Optional[Type] = None) -> Any:
     if declared_type is not None:
         underlying_type = typing.get_origin(declared_type) or declared_type
         # we have to handle unions specially for declared types:
-        if underlying_type is Union:
+        if utils.is_union(declared_type):
             # find the first type that matches the object's type
             for t in typing.get_args(declared_type):
                 # we can't use subscripted generic types here
-                # strip type args
-                if isinstance(obj, typing.get_origin(t) or t):
+                if typing.get_origin(t) is typing.Literal:
+                    for arg in typing.get_args(t):
+                        if arg == obj:
+                            underlying_type = t
+                            declared_type = t
+                            break
+                elif isinstance(obj, typing.get_origin(t) or t):
                     underlying_type = typing.get_origin(t) or t
                     declared_type = t
                     break
@@ -122,15 +128,14 @@ def encode_dataclass(obj: Any, declared_type: Optional[Type] = None):
     d: Dict[str, Any] = dict()
 
     # Handle type parameters if declared_type is provided
-    type_map = {}
+    type_map: Dict = {}
     if declared_type is not None:
-        origin = typing.get_origin(declared_type)
-        if origin is not None and hasattr(origin, "__parameters__"):
+        # Build a type_map only when declared_type's origin or itself defines real type parameters
+        origin = typing.get_origin(declared_type) or declared_type
+        type_vars = getattr(origin, "__parameters__", ()) or ()
+        if isinstance(type_vars, tuple) and type_vars:
             type_args = typing.get_args(declared_type)
-            type_vars = origin.__parameters__
             type_map = dict(zip(type_vars, type_args))
-        else:
-            origin = declared_type
 
     for field in fields(obj):
         value = getattr(obj, field.name)
@@ -204,7 +209,8 @@ def encode_enum(obj: Enum, declared_type: Optional[Type] = None) -> str:
 
 
 for t in [str, float, int, bool, bytes]:
-    encode.register(t, lambda x, _=None: x)
+    # subclass enums
+    encode.register(t, lambda x, _=None: x, include_subclasses=True)
 
 
 @encode.register(list)
@@ -239,6 +245,6 @@ def encode_set(obj: set, declared_type: Optional[Type] = None) -> list:
     return [encode(x, item_type) for x in obj]
 
 
-encode.register(PathLike, lambda x, _=None: x.__fspath__())
+encode.register(PathLike, lambda x, _=None: x.__fspath__(), include_subclasses=True)
 
 encode.register(Namespace, lambda x, _=None: encode(vars(x)))
