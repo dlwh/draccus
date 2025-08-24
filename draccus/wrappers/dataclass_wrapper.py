@@ -61,7 +61,8 @@ class DataclassWrapper(AggregateWrapper[Type[Dataclass]]):
 
     def register_actions(self, parser: argparse.ArgumentParser) -> None:
         group = parser.add_argument_group(title=self.title, description=self.description)
-
+        if self.dest is not None:
+            parser.add_argument("--" + self.dest, type=str, required=False, help="Config file for " + self.name)
         for child in self._children:
             if isinstance(child, AggregateWrapper):
                 # Child name will always be populated as this is done via our code inside `_wrap_field`
