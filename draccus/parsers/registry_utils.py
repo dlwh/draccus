@@ -1,3 +1,7 @@
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
 from abc import get_cache_token
 from dataclasses import dataclass
 from functools import _find_impl, update_wrapper  # type: ignore

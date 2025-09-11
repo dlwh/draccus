@@ -1,3 +1,7 @@
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
 from abc import ABC, abstractmethod
 from enum import Enum
 from inspect import isclass

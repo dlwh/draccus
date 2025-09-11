@@ -1,3 +1,7 @@
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
 """Abstract Wrapper base-class for the FieldWrapper and DataclassWrapper."""
 import argparse
 from abc import ABC, abstractmethod

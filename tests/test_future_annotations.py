@@ -1,3 +1,7 @@
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

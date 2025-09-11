@@ -1,5 +1,8 @@
-""" Functions for decoding dataclass fields from "raw" values (e.g. from json).
-"""
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
+"""Functions for decoding dataclass fields from "raw" values (e.g. from json)."""
 import functools
 import typing
 from collections import OrderedDict
@@ -53,8 +56,7 @@ Dataclass = TypeVar("Dataclass")
 
 
 class DecodingFunction(Protocol[T_co]):
-    def __call__(self, raw_value: Any, path: Sequence[str]) -> T_co:
-        ...
+    def __call__(self, raw_value: Any, path: Sequence[str]) -> T_co: ...
 
 
 @withregistry
@@ -504,7 +506,7 @@ def decode_literal(cls: Type[T], raw_value: Any, path) -> T:
 
     # First try direct equality with type checking
     for value in allowed_values:
-        if raw_value == value and type(raw_value) == type(value):
+        if raw_value == value and type(raw_value) is type(value):
             logger.debug(f"Found direct match with value {value}")
             return value
 

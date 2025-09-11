@@ -1,3 +1,7 @@
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
 import enum
 from dataclasses import dataclass
 from enum import Enum, auto

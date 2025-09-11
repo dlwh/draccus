@@ -1,3 +1,7 @@
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
 """Simple, extendable mechanism for encoding pracitaclly anything to string.
 
 Just register a new encoder for a given type like so:

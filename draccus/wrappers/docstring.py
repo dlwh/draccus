@@ -1,3 +1,7 @@
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
 """Utility for retrieveing the docstring of a dataclass's attributes
 @author: Fabrice Normandin
 """

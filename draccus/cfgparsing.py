@@ -1,3 +1,7 @@
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
 import os
 from pathlib import Path
 from typing import Optional, TextIO, Type, Union

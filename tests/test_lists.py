@@ -1,3 +1,7 @@
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
 import sys
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union

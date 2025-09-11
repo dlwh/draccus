@@ -1,3 +1,7 @@
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
 # tests that draccus can correctly parse and use generic parameters
 from dataclasses import dataclass
 from typing import Generic, List, TypeVar

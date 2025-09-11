@@ -1,3 +1,7 @@
+# Copyright 2025 The Draccus Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
 """Utility functions used in various parts of the draccus package."""
 import builtins
 import collections.abc as c_abc
