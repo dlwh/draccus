@@ -1,5 +1,5 @@
-# Copyright 2025 The Draccus Authors
-# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+# SPDX-License-Identifier: MIT
 
 
 # tests that draccus can correctly parse and use generic parameters

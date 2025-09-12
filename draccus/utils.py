@@ -1,5 +1,5 @@
-# Copyright 2025 The Draccus Authors
-# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+# SPDX-License-Identifier: MIT
 
 
 """Utility functions used in various parts of the draccus package."""
