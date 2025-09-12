@@ -1,6 +1,7 @@
-# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
 # SPDX-License-Identifier: MIT
-
+# Copyright 2019 Fabrice Normandin
+# Copyright 2021 Elad Richardson
+# Copyright 2022-2025 The Draccus Authors
 
 import tempfile
 from enum import Enum, auto

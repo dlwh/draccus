@@ -16,7 +16,6 @@ repos:
         args:
           - --license-filepath
           - etc/license_header.txt
-          - --use-current-year
 
   - repo: https://github.com/psf/black
     rev: 25.1.0
