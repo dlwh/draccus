@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+
 import os
 from pathlib import Path
 from typing import Optional, TextIO, Type, Union

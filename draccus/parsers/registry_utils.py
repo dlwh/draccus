@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+
 from abc import get_cache_token
 from dataclasses import dataclass
 from functools import _find_impl, update_wrapper  # type: ignore

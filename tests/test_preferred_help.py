@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+
 from dataclasses import dataclass
 
 from draccus.wrappers.docstring import HelpOrder, get_attribute_docstring, get_preferred_help_text

@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+# Copyright 2019 Fabrice Normandin
+# Copyright 2021 Elad Richardson
+
 """Simple, extendable mechanism for encoding pracitaclly anything to string.
 
 Just register a new encoder for a given type like so:

@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+# Copyright 2019 Fabrice Normandin
+# Copyright 2021 Elad Richardson
+
 import argparse
 from argparse import ONE_OR_MORE, OPTIONAL, PARSER, REMAINDER, ZERO_OR_MORE, Action
 from logging import getLogger
