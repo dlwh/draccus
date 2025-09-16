@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+
 # tests that draccus can correctly parse and use generic parameters
 from dataclasses import dataclass
 from typing import Generic, List, TypeVar

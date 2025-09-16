@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+
 import tempfile
 from enum import Enum, auto
 from pathlib import Path
@@ -38,10 +41,9 @@ num_units: 16
 """
         )
 
-
-        config = HyperParameters.setup(f"--config_path {config_path} "
-                                       f"--age_group 'include {age_group_path_cli}' "
-                                       f"--age_group.num_units 32")
+        config = HyperParameters.setup(
+            f"--config_path {config_path} " f"--age_group 'include {age_group_path_cli}' " f"--age_group.num_units 32"
+        )
 
         assert config.age_group.name == "age_group_cli"
         assert config.age_group.num_units == 32
@@ -54,7 +56,7 @@ def test_merge_include_hyperparameters(HyperParameters):
         config_path = tmpdir / "config.yaml"
         config_path.write_text(
             """
-age_group: 
+age_group:
   name: age_group_1
   num_units: 16
 batch_size: 1234
@@ -69,9 +71,7 @@ num_units: 678
 """
         )
 
-        config = HyperParameters.setup(f"--config_path {config_path} "
-                                       f"--age_group 'include {age_group_path_cli}' ")
+        config = HyperParameters.setup(f"--config_path {config_path} " f"--age_group 'include {age_group_path_cli}' ")
 
         assert config.age_group.name == "age_group_cli"
         assert config.age_group.num_units == 678
-

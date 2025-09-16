@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+
 import dataclasses
 
 from tests.draccus_choice_plugins.model_config import ModelConfig

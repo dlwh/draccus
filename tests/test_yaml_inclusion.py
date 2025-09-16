@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+
 import tempfile
 from enum import Enum, auto
 from pathlib import Path

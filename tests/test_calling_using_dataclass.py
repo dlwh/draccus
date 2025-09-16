@@ -1,10 +1,15 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+
 from dataclasses import dataclass, field
 
 import draccus
 
+
 @dataclass
 class TrainConfig:
     workers: int
+
 
 @draccus.wrap()
 def function_with_draccus_wrap(cfg: TrainConfig):

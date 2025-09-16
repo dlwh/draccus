@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+
 """
 A Choice Type aka "Sum Type" is a type that can be one of several types. Typically this is through subtyping,
 but could be a tagged union or something else.
@@ -47,12 +50,10 @@ CHOICE_TYPE_KEY = "type"
 @runtime_checkable
 class ChoiceType(Protocol):
     @classmethod
-    def get_choice_class(cls, name: str) -> Any:
-        ...
+    def get_choice_class(cls, name: str) -> Any: ...
 
     @classmethod
-    def get_known_choices(cls) -> Dict[str, Any]:
-        ...
+    def get_known_choices(cls) -> Dict[str, Any]: ...
 
     @classmethod
     def get_choice_name(cls, subcls: Type) -> str:
@@ -93,13 +94,11 @@ class ChoiceRegistryBase(ChoiceType):
 
     @overload
     @classmethod
-    def register_subclass(cls, name: str, choice_type: Type) -> Type[T]:
-        ...
+    def register_subclass(cls, name: str, choice_type: Type) -> Type[T]: ...
 
     @overload
     @classmethod
-    def register_subclass(cls, name: str) -> Callable[[Type[T]], Type[T]]:
-        ...
+    def register_subclass(cls, name: str) -> Callable[[Type[T]], Type[T]]: ...
 
     @classmethod
     def register_subclass(cls, name: str, choice_type: Optional[Type[T]] = None):

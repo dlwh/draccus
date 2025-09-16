@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2025 The Board of Trustees of the Leland Stanford Junior University
+
 from abc import ABC, abstractmethod
 from enum import Enum
 from inspect import isclass
