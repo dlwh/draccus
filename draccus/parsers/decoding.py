@@ -253,6 +253,8 @@ def get_decoding_fn(cls: Type[T]) -> DecodingFunction[T]:
             # takes only one argument, so we wrap it here
             @functools.wraps(fn)
             def backwards_compat_call(raw_value: Any, path: Sequence[str] = ()) -> T:
+                if raw_value is None:
+                    return None
                 try:
                     return fn(raw_value, path)
                 except TypeError:
